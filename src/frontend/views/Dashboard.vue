@@ -32,22 +32,22 @@
               class="toggle-btn"
               :class="{ active: currentView === 'bar' }"
               @click="switchView('bar')"
-            >▤ {{ trans.barChart }}</button>
+            ><BarChart3 :size="14" aria-hidden="true" /> {{ trans.barChart }}</button>
             <button
               class="toggle-btn"
               :class="{ active: currentView === 'ring' }"
               @click="switchView('ring')"
-            >◌ {{ trans.ringChart }}</button>
+            ><Gauge :size="14" aria-hidden="true" /> {{ trans.ringChart }}</button>
             <button
               class="toggle-btn"
               :class="{ active: currentView === 'table' }"
               @click="switchView('table')"
-            >≡ {{ trans.table }}</button>
+            ><Table :size="14" aria-hidden="true" /> {{ trans.table }}</button>
             <button
               class="toggle-btn"
               :class="{ active: currentView === 'map' }"
               @click="switchView('map')"
-            >◉ {{ trans.map }}</button>
+            ><Map :size="14" aria-hidden="true" /> {{ trans.map }}</button>
           </div>
         </div>
       </div>
@@ -62,7 +62,7 @@
             :data-filter="item.code"
             @click="setFilter(item.code)"
           >
-            <span v-if="item.code === 'unknown'" class="filter-tag-icon">🏳️</span>
+            <span v-if="item.code === 'unknown'" class="filter-tag-icon"><Flag :size="12" aria-hidden="true" /></span>
             <img v-else-if="item.flagCode" :src="getPublicAssetUrl('flags/' + item.flagCode + '.svg')" :alt="item.code">
             <span class="filter-tag-label">{{ item.label }}</span>
             <span class="filter-tag-count">{{ item.count }}</span>
@@ -87,7 +87,7 @@
                 :data-filter="item.code"
                 @click="setFilter(item.code)"
               >
-                <span v-if="item.code === 'unknown'" class="filter-tag-icon">🏳️</span>
+                <span v-if="item.code === 'unknown'" class="filter-tag-icon"><Flag :size="12" aria-hidden="true" /></span>
                 <img v-else-if="item.flagCode" :src="getPublicAssetUrl('flags/' + item.flagCode + '.svg')" :alt="item.code">
                 <span class="filter-tag-label">{{ item.label }}</span>
                 <span class="filter-tag-count">{{ item.count }}</span>
@@ -102,7 +102,7 @@
             type="button"
             class="filter-tag filter-measure-tag"
           >
-            <span v-if="item.code === 'unknown'" class="filter-tag-icon">🏳️</span>
+            <span v-if="item.code === 'unknown'" class="filter-tag-icon"><Flag :size="12" aria-hidden="true" /></span>
             <img v-else-if="item.flagCode" :src="getPublicAssetUrl('flags/' + item.flagCode + '.svg')" :alt="item.code">
             <span class="filter-tag-label">{{ item.label }}</span>
             <span class="filter-tag-count">{{ item.count }}</span>
@@ -158,7 +158,7 @@
 
     <div id="view-card" class="view-panel" :class="{ active: isCardView, 'high-density': filteredServers.length > 12 }">
       <div v-if="groupedServers.length === 0" class="empty-state">
-        [!] {{ trans.noServer }} <a href="/admin#/admin" class="admin-link-color">{{ trans.backToAdmin }}</a>{{ trans.noServerSuffix }}
+        [!] {{ trans.noServer }} <a :href="adminHref" class="admin-link-color">{{ trans.backToAdmin }}</a>{{ trans.noServerSuffix }}
       </div>
       <div v-else>
         <div v-for="group in groupedServers" :key="group.name" class="group-section">
@@ -169,7 +169,7 @@
             <component
               :is="currentCardComponent"
               v-for="server in group.servers"
-              :key="server.id + '-' + currentView"
+              :key="getServerKey(server) + '-' + currentView"
               :server="server"
               :sys-config="sysConfig"
               :to="getServerLink(server)"
@@ -210,7 +210,7 @@
             </tr>
             <tr 
               v-for="server in filteredServers" 
-              :key="server.id"
+              :key="getServerKey(server)"
               @click="goToServer(server)"
               class="table-cursor-pointer"
               :data-region="(server.region || 'xx').toLowerCase()"
@@ -224,7 +224,7 @@
                   <img :src="getPublicAssetUrl('flags/' + getFlagRegionCode(server.region) + '.svg')" :alt="server.region" class="flag-img">
                 </span>
                 <span v-else class="country-os-icons">
-                  <span class="flag-fallback">🏳️</span>
+                  <span class="flag-fallback"><Flag :size="14" aria-hidden="true" /></span>
                 </span>
                 {{ (server.region || 'XX').toUpperCase() }}
               </td>
@@ -291,15 +291,22 @@
       <span>Loading remaining sites... ({{ sitesRemaining }})</span>
     </div>
 
-    <div v-if="hasCorsError" class="modal-overlay active">
+    <div
+      v-if="hasCorsError"
+      class="modal-overlay active"
+      role="dialog"
+      aria-modal="true"
+      @click.self="hasCorsError = null"
+    >
       <div class="modal-dialog">
         <div class="modal-header">
           <div class="modal-title">$ cors --error</div>
-          <button class="modal-close" @click="hasCorsError = null">✕</button>
+          <button type="button" class="modal-close" :aria-label="trans.close" @click="hasCorsError = null"><X :size="18" aria-hidden="true" /></button>
         </div>
         <div v-for="site in hasCorsError" :key="site" class="danger-box mb-4">
           <div class="flex-center-gap-sm">
-            <span class="danger-label">❌ {{ site }} {{ trans.corsBlocked }}</span>
+            <XCircle :size="16" class="danger-icon" aria-hidden="true" />
+            <span class="danger-label">{{ site }} {{ trans.corsBlocked }}</span>
           </div>
         </div>
         <div class="modal-footer flex-justify-end">
@@ -308,11 +315,17 @@
       </div>
     </div>
 
-    <div v-if="financeModalOpen" class="modal-overlay active" @click.self="financeModalOpen = false">
+    <div
+      v-if="financeModalOpen"
+      class="modal-overlay active"
+      role="dialog"
+      aria-modal="true"
+      @click.self="financeModalOpen = false"
+    >
       <div class="modal-dialog finance-modal-dialog">
         <div class="modal-header">
           <div class="modal-title">$ finance --summary</div>
-          <button class="modal-close" @click="financeModalOpen = false">✕</button>
+          <button type="button" class="modal-close" :aria-label="trans.close" @click="financeModalOpen = false"><X :size="18" aria-hidden="true" /></button>
         </div>
 
         <div class="finance-summary-grid">
@@ -372,6 +385,7 @@
 <script setup>
 import { ref, computed, inject, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { BarChart3, Flag, Gauge, Map, Table, X, XCircle } from 'lucide-vue-next'
 import TerminalHeader from '../components/TerminalHeader.vue'
 import ServerBarCard from '../components/ServerBarCard.vue'
 import ServerRingCard from '../components/ServerRingCard.vue'
@@ -380,7 +394,7 @@ import OsIcon from '../components/OsIcon.vue'
 import LiveConnectionTimeoutModal from '../components/LiveConnectionTimeoutModal.vue'
 import { fetchConfig, fetchServersAll, fetchServersAllWithProgress, formatBytes, createLiveSocket, getFlagRegionCode, isServerOnline, normalizeLiveSocketTimeoutMinutes } from '../utils/api.js'
 import { calcTrafficUsagePercent, getUsageColor } from '../composables/useServerCardData'
-import { getTitle, hasMultipleApiBases, getApiBases, getPublicAssetUrl } from '../utils/config'
+import { getTitle, hasConfiguredApiBase, hasMultipleApiBases, getApiBases, getPublicAssetUrl } from '../utils/config'
 import { currentLang, useTranslation } from '../utils/i18n.js'
 import { TIME, DEFAULT_SITE_TITLE, STORAGE, LATENCY_WINDOW } from '../utils/constants'
 import { normalizeTimestamp as normalizeMetricTimestamp } from '../utils/time.js'
@@ -448,6 +462,7 @@ const now = ref(Date.now())
 const router = useRouter()
 
 const trans = useTranslation()
+const adminHref = computed(() => hasConfiguredApiBase() ? '#/admin' : '/admin#/admin')
 const financeRateCurrencies = DISPLAY_FINANCE_CURRENCIES
 const isMikusTheme = computed(() => isMikusThemeEnabled(sysConfig.value.theme_options))
 
@@ -522,6 +537,11 @@ const loadFinanceRates = async () => {
   }
 }
 
+const isUnknownRegion = (region) => {
+  const normalized = String(region || '').trim().toLowerCase()
+  return !normalized || normalized === 'xx'
+}
+
 const filterOptions = computed(() => {
   const normalizedStats = {}
   for (const code in regionStats.value) {
@@ -538,6 +558,13 @@ const filterOptions = computed(() => {
   const opts = { ...sortedRegionStats }
   if (unknownStats.value > 0) opts.unknown = unknownStats.value
   return opts
+})
+
+watch(filterOptions, (opts) => {
+  if (currentFilter.value !== 'all' && !Object.prototype.hasOwnProperty.call(opts, currentFilter.value)) {
+    currentFilter.value = 'all'
+    filterMoreOpen.value = false
+  }
 })
 
 const getFilterLabel = (code) => {
@@ -644,8 +671,8 @@ watch(filterMoreLabel, scheduleFilterMeasurement, { flush: 'post' })
 
 const filteredServers = computed(() => {
   if (currentFilter.value === 'all') return servers.value
-  if (currentFilter.value === 'unknown') return servers.value.filter(s => !s.region)
-  return servers.value.filter(s => (s.region || 'xx').toLowerCase() === currentFilter.value)
+  if (currentFilter.value === 'unknown') return servers.value.filter(s => isUnknownRegion(s.region))
+  return servers.value.filter(s => String(s.region || '').trim().toLowerCase() === currentFilter.value)
 })
 
 const groupedServers = computed(() => {
@@ -738,6 +765,14 @@ const PLAYBACK_TICK_MS = 1000
 const MAX_BUFFER_SAMPLES_PER_SERVER = 600
 const playbackBuffers = new Map()
 
+const makeServerKey = (serverId, source = '') => {
+  const id = String(serverId || '')
+  const src = String(source || '').trim()
+  return src ? `${src}::${id}` : id
+}
+
+const getServerKey = (server) => makeServerKey(server?.id, server?.source)
+
 const getServerReportTimestamp = (server, fallback = null) => {
   return normalizeMetricTimestamp(server?.report_timestamp ?? server?.last_updated, fallback)
 }
@@ -771,29 +806,32 @@ const withDisplayTiming = (server, displayTs = null, currentTs = Date.now()) => 
   }
 }
 
-const toLiveSample = (serverId, data, timestamp, reportTs) => {
+const toLiveSample = (serverId, data, timestamp, reportTs, source = '') => {
   if (!serverId || !data) return
   const ts = normalizeMetricTimestamp(timestamp ?? data.sample_timestamp ?? data.last_updated ?? data.timestamp, null)
   if (!ts) return null
   return {
     serverId,
+    source,
+    serverKey: makeServerKey(serverId, source),
     ts,
     data,
     reportTs
   }
 }
 
-const queueLiveSamples = (serverId, samples, reportTs, { replayCachedReport = false, reportAgeMs = 0 } = {}) => {
+const queueLiveSamples = (serverId, samples, reportTs, { replayCachedReport = false, reportAgeMs = 0, source = '' } = {}) => {
   if (!serverId || !Array.isArray(samples) || samples.length === 0) return
 
+  const serverKey = makeServerKey(serverId, source)
   const normalized = samples
-    .map(sample => toLiveSample(serverId, sample.data, sample.ts, reportTs))
+    .map(sample => toLiveSample(serverId, sample.data, sample.ts, reportTs, source))
     .filter(Boolean)
     .sort((a, b) => a.ts - b.ts)
 
   if (normalized.length === 0) return
 
-  const current = servers.value.find(s => s.id === serverId)
+  const current = servers.value.find(s => getServerKey(s) === serverKey)
   const currentTs = getServerSampleTimestamp(current)
   const currentDisplayTs = getServerDisplayTimestamp(current)
   const incoming = replayCachedReport
@@ -808,9 +846,9 @@ const queueLiveSamples = (serverId, samples, reportTs, { replayCachedReport = fa
   if (playbackStartTs === null) return
 
   if (incoming.length === 1) {
-    playbackBuffers.delete(serverId)
+    playbackBuffers.delete(serverKey)
     const sample = incoming[0]
-    applyServerSample(serverId, sample.data, sample.ts, playbackStartTs, reportTs)
+    applyServerSample(serverId, sample.data, sample.ts, playbackStartTs, reportTs, source)
     return
   }
 
@@ -821,11 +859,11 @@ const queueLiveSamples = (serverId, samples, reportTs, { replayCachedReport = fa
     seen.add(sample.ts)
     unique.push(sample)
   }
-  playbackBuffers.set(serverId, unique.slice(-MAX_BUFFER_SAMPLES_PER_SERVER))
-  applyPlaybackSamplesForServer(serverId, playbackStartTs)
+  playbackBuffers.set(serverKey, unique.slice(-MAX_BUFFER_SAMPLES_PER_SERVER))
+  applyPlaybackSamplesForServer(serverKey, playbackStartTs)
 }
 
-const queueLiveMessage = (msg, { replayCachedReport = false } = {}) => {
+const queueLiveMessage = (msg, { replayCachedReport = false, source = '' } = {}) => {
   if (!msg || msg.type !== 'batchUpdate') return
 
   const messageReportTs = normalizeMetricTimestamp(msg.ts, Date.now())
@@ -837,6 +875,7 @@ const queueLiveMessage = (msg, { replayCachedReport = false } = {}) => {
     const samples = Array.isArray(update.samples) ? update.samples : []
     const reportTs = normalizeMetricTimestamp(update.reportTs ?? update.report_timestamp, messageReportTs)
     const reportAgeMs = replayCachedReport ? update.reportAgeMs : 0
+    const updateSource = update.source ?? source ?? ''
 
     const liveSamples = []
     for (const sample of samples) {
@@ -848,7 +887,7 @@ const queueLiveMessage = (msg, { replayCachedReport = false } = {}) => {
         data
       })
     }
-    queueLiveSamples(update.serverId, liveSamples, reportTs, { replayCachedReport, reportAgeMs })
+    queueLiveSamples(update.serverId, liveSamples, reportTs, { replayCachedReport, reportAgeMs, source: updateSource })
   }
 }
 
@@ -858,15 +897,17 @@ const replayLatestReportUpdates = (data) => {
   queueLiveMessage({ type: 'batchUpdate', ts: Date.now(), updates }, { replayCachedReport: true })
 }
 
-const applyServerSample = (serverId, data, sampleTs, displayTs, reportTs = null) => {
+const applyServerSample = (serverId, data, sampleTs, displayTs, reportTs = null, source = '') => {
   if (!serverId || !data) return
-  const idx = servers.value.findIndex(s => s.id === serverId)
+  const serverKey = makeServerKey(serverId, source)
+  const idx = servers.value.findIndex(s => getServerKey(s) === serverKey)
   const existing = idx >= 0 ? servers.value[idx] : null
   const currentReportTs = getServerReportTimestamp(existing, null)
   const nextReportTs = normalizeMetricTimestamp(reportTs, currentReportTs || now.value)
   const merged = withDisplayTiming({
     ...data,
     id: serverId,
+    ...(source ? { source } : {}),
     report_timestamp: nextReportTs,
     last_updated: nextReportTs,
     sample_timestamp: sampleTs,
@@ -880,10 +921,10 @@ const applyServerSample = (serverId, data, sampleTs, displayTs, reportTs = null)
   }
 }
 
-const applyPlaybackSamplesForServer = (serverId, displayTs = null) => {
-  const samples = playbackBuffers.get(serverId)
+const applyPlaybackSamplesForServer = (serverKey, displayTs = null) => {
+  const samples = playbackBuffers.get(serverKey)
   if (!samples || samples.length === 0) return
-  const server = servers.value.find(s => s.id === serverId)
+  const server = servers.value.find(s => getServerKey(s) === serverKey)
   const ownTs = normalizeMetricTimestamp(displayTs, getServerDisplayTimestamp(server))
   if (!ownTs) return
 
@@ -892,14 +933,14 @@ const applyPlaybackSamplesForServer = (serverId, displayTs = null) => {
     selected = samples.shift()
   }
   if (selected) {
-    applyServerSample(serverId, selected.data, selected.ts, ownTs, selected.reportTs)
+    applyServerSample(selected.serverId, selected.data, selected.ts, ownTs, selected.reportTs, selected.source)
   }
-  if (samples.length === 0) playbackBuffers.delete(serverId)
+  if (samples.length === 0) playbackBuffers.delete(serverKey)
 }
 
 const applyPlaybackSamples = () => {
-  for (const serverId of Array.from(playbackBuffers.keys())) {
-    applyPlaybackSamplesForServer(serverId)
+  for (const serverKey of Array.from(playbackBuffers.keys())) {
+    applyPlaybackSamplesForServer(serverKey)
   }
 }
 
@@ -932,8 +973,8 @@ const recomputeStats = (currentTs = Date.now()) => {
     }
     netRx += parseFloat(s.net_rx) || 0
     netTx += parseFloat(s.net_tx) || 0
-    if (s.region) {
-      const key = String(s.region).toUpperCase()
+    if (!isUnknownRegion(s.region)) {
+      const key = String(s.region).trim().toUpperCase()
       regionCounts[key] = (regionCounts[key] || 0) + 1
     } else {
       unknownCount++
@@ -960,9 +1001,9 @@ const runDashboardTick = () => {
 }
 
 const mergeServersIntoList = (rawServers) => {
-  const existingById = new Map(servers.value.map(s => [s.id, s]))
+  const existingByKey = new Map(servers.value.map(s => [getServerKey(s), s]))
   return rawServers.map(s => {
-    const prev = existingById.get(s.id)
+    const prev = existingByKey.get(getServerKey(s))
     const sampleTs = normalizeMetricTimestamp(s.sample_timestamp ?? s.timestamp ?? s.last_updated, getServerSampleTimestamp(prev))
     const reportTs = normalizeMetricTimestamp(s.report_timestamp ?? s.last_updated, getServerReportTimestamp(prev, null))
     return withDisplayTiming({ ...prev, ...s, sample_timestamp: sampleTs, report_timestamp: reportTs }, sampleTs, now.value)
@@ -1088,6 +1129,7 @@ let liveSockets = []
 let liveConnectionClosedByUser = false
 let themeObserver = null
 let timeUpdateInterval = null
+let isUnmounted = false
 
 const stopLiveSockets = () => {
   if (liveSockets.length === 0) return
@@ -1123,7 +1165,7 @@ const startLiveSocket = () => {
     liveSockets = [createLiveSocket('all', {
       replay: false,
       timeoutMinutes: sysConfig.value.frontend_ws_timeout_minutes,
-      onMessage: queueLiveMessage,
+      onMessage: (msg) => queueLiveMessage(msg, { source: '' }),
       onTimeout: () => {
         showLiveTimeoutModal.value = true
       },
@@ -1135,13 +1177,13 @@ const startLiveSocket = () => {
   }
 
   // 为每个 API base 创建独立的 WebSocket 连接，跳过没有服务器的 base
-  liveSockets = bases.map((_, index) => {
+  liveSockets = bases.map((base, index) => {
     const ids = idsByIndex.get(index)
     if (!ids || ids.length === 0) return null
     return createLiveSocket('all', {
       replay: false,
       timeoutMinutes: sysConfig.value.frontend_ws_timeout_minutes,
-      onMessage: queueLiveMessage,
+      onMessage: (msg) => queueLiveMessage(msg, { source: base }),
       onTimeout: () => {
         showLiveTimeoutModal.value = true
       },
@@ -1184,11 +1226,20 @@ const handleVisibility = () => {
 }
 
 const initMap = () => {
+  if (isUnmounted) return
   if (!window.L) {
+    const existingScript = document.querySelector('script[data-cfsm-leaflet="1"]')
+    if (existingScript) {
+      existingScript.addEventListener('load', () => {
+        if (!isUnmounted) loadLeafletCSS()
+      }, { once: true })
+      return
+    }
     const script = document.createElement('script')
+    script.dataset.cfsmLeaflet = '1'
     script.src = getPublicAssetUrl('files/leaflet.js')
     script.onload = () => {
-      loadLeafletCSS()
+      if (!isUnmounted) loadLeafletCSS()
     }
     document.head.appendChild(script)
   } else {
@@ -1197,20 +1248,48 @@ const initMap = () => {
 }
 
 const loadLeafletCSS = () => {
+  if (isUnmounted) return
+  const existingLink = document.querySelector('link[data-cfsm-leaflet="1"]')
+  if (existingLink) {
+    createMap()
+    return
+  }
   const link = document.createElement('link')
+  link.dataset.cfsmLeaflet = '1'
   link.rel = 'stylesheet'
   link.href = getPublicAssetUrl('files/leaflet.css')
-  document.head.appendChild(link)
   link.onload = () => {
-    createMap()
+    if (!isUnmounted) createMap()
   }
+  document.head.appendChild(link)
 }
 
 const isMobile = () => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768
 
+const destroyMap = () => {
+  if (window.myMap) {
+    try {
+      window.myMap.remove()
+    } catch (_) {}
+    window.myMap = null
+  }
+  markersLayer = null
+  geoJsonLayer = null
+  currentMapDataStr = ''
+  mapInitialized.value = false
+}
+
 const createMap = () => {
+  if (isUnmounted || !window.L) return
+  const container = document.getElementById('map-container')
+  if (!container) return
+  if (window.myMap) {
+    destroyMap()
+    mapInitialized.value = true
+  }
+
   const mobileView = isMobile()
-  window.myMap = window.L.map('map-container', {
+  window.myMap = window.L.map(container, {
     zoomControl: false,
     attributionControl: false,
     minZoom: mobileView ? 1 : 1
@@ -1218,11 +1297,18 @@ const createMap = () => {
 
   window.L.control.zoom({ position: 'bottomright' }).addTo(window.myMap)
 
+  if (window.worldGeoJson) {
+    drawMarkers()
+    return
+  }
+
   fetch(getPublicAssetUrl('files/world.zh.json'))
     .then(res => res.json())
     .then(worldGeoJson => {
       window.worldGeoJson = worldGeoJson
-      drawMarkers()
+      if (!isUnmounted && window.myMap) {
+        drawMarkers()
+      }
     })
     .catch(e => console.error('[ERROR] Map load failed', e))
 }
@@ -1243,13 +1329,15 @@ let markersLayer, geoJsonLayer, currentMapDataStr = ""
 
 const getThemeColors = () => {
   const isLight = document.body.classList.contains('light')
+  const styles = window.getComputedStyle(document.body)
+  const readVar = (name, fallback) => styles.getPropertyValue(name).trim() || fallback
   return {
-    bgPrimary: isLight ? '#0a0e14' : '#0a0e14',
-    bgSecondary: isLight ? '#e8e8e0' : '#12171f',
-    borderColor: isLight ? '#1e2a3a' : '#1e2a3a',
-    accentGreen: isLight ? '#00d4aa' : '#00d4aa',
-    colorBlack: isLight ? '#000' : '#000',
-    colorWhite: isLight ? '#fff' : '#fff'
+    bgPrimary: readVar('--bg-primary', isLight ? '#f5f5f0' : '#0a0e14'),
+    bgSecondary: readVar('--bg-secondary', isLight ? '#e8e8e0' : '#12171f'),
+    borderColor: readVar('--border-color', isLight ? '#c8c8bc' : '#1e2a3a'),
+    accentGreen: readVar('--accent-green', isLight ? '#1a7f5a' : '#00d4aa'),
+    colorBlack: isLight ? '#fff' : '#000',
+    colorWhite: isLight ? '#1f2937' : '#fff'
   }
 }
 
@@ -1319,13 +1407,28 @@ const handleThemeOptionsChanged = (event) => {
     ...sysConfig.value,
     theme_options: normalizeThemeOptions(event.detail)
   }
+  if (currentView.value === 'map') {
+    currentMapDataStr = ''
+    requestAnimationFrame(() => {
+      if (!isUnmounted) drawMarkers()
+    })
+  }
+}
+
+const handleDashboardKeyDown = (event) => {
+  if (event.key !== 'Escape') return
+  if (hasCorsError.value) { hasCorsError.value = null; return }
+  if (financeModalOpen.value) { financeModalOpen.value = false; return }
+  if (filterMoreOpen.value) { filterMoreOpen.value = false }
 }
 
 onMounted(async () => {
+  window.addEventListener('keydown', handleDashboardKeyDown)
   financeCurrency.value = getStoredFinanceCurrency()
   loadFinanceRates()
 
   await loadDashboardConfig()
+  if (isUnmounted) return
   const rawSavedView = localStorage.getItem(STORAGE.VIEW_PREFERENCE)
   const savedView = normalizeDashboardView(rawSavedView, sysConfig.value.display_mode)
   currentView.value = savedView
@@ -1333,7 +1436,9 @@ onMounted(async () => {
     localStorage.setItem(STORAGE.VIEW_PREFERENCE, savedView)
   }
   await refreshData()
+  if (isUnmounted) return
   await nextTick()
+  if (isUnmounted) return
   scheduleFilterMeasurement()
   if (window.ResizeObserver && filterWrap.value) {
     filterResizeObserver = new ResizeObserver(scheduleFilterMeasurement)
@@ -1366,6 +1471,8 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  isUnmounted = true
+  window.removeEventListener('keydown', handleDashboardKeyDown)
   document.removeEventListener('visibilitychange', handleVisibility)
   document.removeEventListener('click', closeFilterMoreOnOutsideClick)
   window.removeEventListener('theme-options-changed', handleThemeOptionsChanged)
@@ -1374,6 +1481,7 @@ onUnmounted(() => {
   if (filterResizeObserver) filterResizeObserver.disconnect()
   if (timeUpdateInterval) clearInterval(timeUpdateInterval)
   stopLiveSockets()
+  destroyMap()
   if (themeObserver) themeObserver.disconnect()
 })
 </script>

@@ -7,13 +7,22 @@
       <div class="loading-text">$ {{ trans.loading }}</div>
     </div>
 
+    <div v-else-if="loadError" class="empty-state">
+      <div class="nav-bar">
+        <router-link to="/" class="back-btn">
+          <ChevronLeft :size="14" aria-hidden="true" />
+          {{ trans.back }}
+        </router-link>
+      </div>
+      <p>[!] {{ trans.noData }}</p>
+      <button type="button" class="btn mt-2" @click="retryInit">{{ trans.refresh }}</button>
+    </div>
+
     <template v-else>
     
     <div class="nav-bar">
       <router-link to="/" class="back-btn">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="15 18 9 12 15 6"></polyline>
-        </svg>
+        <ChevronLeft :size="14" aria-hidden="true" />
         {{ trans.back }}
       </router-link>
       <div class="time-selector" v-show="historyLoaded" id="time-selector">
@@ -36,7 +45,7 @@
             <OsIcon :os="server.os" />
           </span>
           <span v-else class="country-os-icons">
-            <span class="flag-fallback">🏳️</span>
+            <span class="flag-fallback"><Flag :size="14" aria-hidden="true" /></span>
             <OsIcon :os="server.os" />
           </span>
           <span>{{ server.name || 'Loading...' }}</span>
@@ -49,51 +58,51 @@
       </div>
       <div class="sysinfo-grid" id="info-panel">
         <div class="sysinfo-item">
-          <span class="sysinfo-label">⏱ {{ trans.uptime }}</span>
+          <span class="sysinfo-label"><Timer :size="13" aria-hidden="true" /> {{ trans.uptime }}</span>
           <span class="sysinfo-value">{{ formatUptime(server.boot_time) }}</span>
         </div>
         <div class="sysinfo-item" v-if="server.expire_date">
-          <span class="sysinfo-label">📅 {{ trans.expire }}</span>
+          <span class="sysinfo-label"><Calendar :size="13" aria-hidden="true" /> {{ trans.expire }}</span>
           <span class="sysinfo-value" :class="{ 'expired': isExpired }">{{ expireDaysText }}</span>
         </div>
         <div class="sysinfo-item">
-          <span class="sysinfo-label">💻 {{ trans.os }} / {{ trans.architecture }}</span>
+          <span class="sysinfo-label"><Monitor :size="13" aria-hidden="true" /> {{ trans.os }} / {{ trans.architecture }}</span>
           <span class="sysinfo-value sysinfo-small">{{ server.os || 'N/A' }} / {{ server.arch || 'N/A' }}</span>
         </div>
         <div class="sysinfo-item" v-if="server.kernel_version">
-          <span class="sysinfo-label">🧩 {{ trans.kernelVersion || 'Kernel' }}</span>
+          <span class="sysinfo-label"><Puzzle :size="13" aria-hidden="true" /> {{ trans.kernelVersion || 'Kernel' }}</span>
           <span class="sysinfo-value sysinfo-small">{{ server.kernel_version }}</span>
         </div>
         <div class="sysinfo-item">
-          <span class="sysinfo-label">🔧 {{ trans.cpuInfo }}</span>
+          <span class="sysinfo-label"><Cpu :size="13" aria-hidden="true" /> {{ trans.cpuInfo }}</span>
           <span class="sysinfo-value sysinfo-small">{{ server.cpu_info || 'N/A' }} x {{ server.cpu_cores || 'N/A' }}</span>
         </div>
         <div class="sysinfo-item" v-if="hasGpuData">
-          <span class="sysinfo-label">🎮 {{ trans.gpuInfo || 'GPU Info' }}</span>
+          <span class="sysinfo-label"><Gamepad2 :size="13" aria-hidden="true" /> {{ trans.gpuInfo || 'GPU Info' }}</span>
           <span class="sysinfo-value sysinfo-small">{{ gpuInfoText }}</span>
         </div>
         <div class="sysinfo-item">
-          <span class="sysinfo-label">💾 {{ trans.totalDiskRam }}</span>
+          <span class="sysinfo-label"><HardDrive :size="13" aria-hidden="true" /> {{ trans.totalDiskRam }}</span>
           <span class="sysinfo-value">{{ formatBytes(server.disk_total*1024*1024) }} / {{ formatBytes(server.ram_total*1024*1024) }}</span>
         </div>
         <div class="sysinfo-item">
-          <span class="sysinfo-label">📊 {{ trans.loadAvg }}</span>
+          <span class="sysinfo-label"><Activity :size="13" aria-hidden="true" /> {{ trans.loadAvg }}</span>
           <span class="sysinfo-value highlight">{{ server.load_avg || '0.00 0.00 0.00' }}</span>
         </div>
         <div class="sysinfo-item">
-          <span class="sysinfo-label">🌐 {{ trans.totalTraffic }}</span>
+          <span class="sysinfo-label"><Globe :size="13" aria-hidden="true" /> {{ trans.totalTraffic }}</span>
           <span class="sysinfo-value sysinfo-small">↓ {{ formatBytes(server.net_rx) }} / ↑ {{ formatBytes(server.net_tx) }}</span>
         </div>
         <div class="sysinfo-item">
-          <span class="sysinfo-label">⚡ {{ trans.realtimeSpeed }}</span>
+          <span class="sysinfo-label"><Zap :size="13" aria-hidden="true" /> {{ trans.realtimeSpeed }}</span>
           <span class="sysinfo-value sysinfo-small">↓ {{ formatBytes(server.net_in_speed) }}/s / ↑ {{ formatBytes(server.net_out_speed) }}/s</span>
         </div>
-        <div class="sysinfo-item" v-if="server.net_rx_monthly">
-          <span class="sysinfo-label">📊 {{ trans.monthlyTraffic }}</span>
+        <div class="sysinfo-item" v-if="server.net_rx_monthly != null || server.net_tx_monthly != null">
+          <span class="sysinfo-label"><BarChart3 :size="13" aria-hidden="true" /> {{ trans.monthlyTraffic }}</span>
           <span class="sysinfo-value sysinfo-small">↓ {{ formatBytes(server.net_rx_monthly) }} / ↑ {{ formatBytes(server.net_tx_monthly) }}</span>
         </div>
-        <div class="sysinfo-item" v-if="server.net_rx_monthly">
-          <span class="sysinfo-label">📦 {{ trans.monthlyTrafficLimit }}</span>
+        <div class="sysinfo-item" v-if="server.traffic_limit || server.net_rx_monthly != null || server.net_tx_monthly != null">
+          <span class="sysinfo-label"><Package :size="13" aria-hidden="true" /> {{ trans.monthlyTrafficLimit }}</span>
           <span class="sysinfo-value sysinfo-small">
             {{ formatBytes(trafficUsageBytes) }}
             /
@@ -101,11 +110,11 @@
           </span>
         </div>
         <div class="sysinfo-item">
-          <span class="sysinfo-label">🕐 {{ trans.bootTime }}</span>
+          <span class="sysinfo-label"><Clock :size="13" aria-hidden="true" /> {{ trans.bootTime }}</span>
           <span class="sysinfo-value sysinfo-small">{{ formatTimestamp(server.boot_time) }}</span>
         </div>
         <div class="sysinfo-item">
-          <span class="sysinfo-label">⏰ {{ trans.lastUpdate }}</span>
+          <span class="sysinfo-label"><RefreshCw :size="13" aria-hidden="true" /> {{ trans.lastUpdate }}</span>
           <span class="sysinfo-value sysinfo-small">{{ lastUpdateText }}</span>
         </div>
       </div>
@@ -370,11 +379,18 @@
 
     <Footer />
 
-    <div id="loginRequiredModal" class="modal-overlay" :class="{ active: showLoginModal }">
+    <div
+      v-if="showLoginModal"
+      id="loginRequiredModal"
+      class="modal-overlay active"
+      role="dialog"
+      aria-modal="true"
+      @click.self="showLoginModal = false"
+    >
       <div class="modal-dialog">
         <div class="modal-header">
           <div class="modal-title">$ sudo login</div>
-          <button class="modal-close" @click="showLoginModal = false">✕</button>
+          <button type="button" class="modal-close" :aria-label="trans.close" @click="showLoginModal = false"><X :size="18" aria-hidden="true" /></button>
         </div>
         <div class="modal-body-content">
           <p class="modal-body-text">{{ trans.loginRequired }}</p>
@@ -398,6 +414,25 @@
 <script setup>
 import { ref, computed, inject, onMounted, onUnmounted, watch, nextTick, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import {
+  Activity,
+  BarChart3,
+  Calendar,
+  ChevronLeft,
+  Clock,
+  Cpu,
+  Flag,
+  Gamepad2,
+  Globe,
+  HardDrive,
+  Monitor,
+  Package,
+  Puzzle,
+  RefreshCw,
+  Timer,
+  X,
+  Zap
+} from 'lucide-vue-next'
 import TerminalHeader from '../components/TerminalHeader.vue'
 import Footer from '../components/Footer.vue'
 import OsIcon from '../components/OsIcon.vue'
@@ -407,7 +442,7 @@ import { isAdminLoggedIn } from '../utils/http'
 import { getTrafficUsageBytes } from '../composables/useServerCardData'
 import { getPublicAssetUrl } from '../utils/config.js'
 import Chart from 'chart.js/auto'
-import { t, useTranslation } from '../utils/i18n'
+import { currentLang, t, useTranslation } from '../utils/i18n'
 import { CHART, HISTORY } from '../utils/constants'
 import { formatDateTime, normalizeTimestamp as normalizeMetricTimestamp } from '../utils/time.js'
 import useTheme from '../composables/useTheme'
@@ -419,21 +454,28 @@ const route = useRoute()
 const router = useRouter()
 const appConfig = inject('appConfig', null)
 
-let serverId = route.params.id
-if (!serverId) {
-  const urlParams = new URLSearchParams(window.location.search)
-  serverId = urlParams.get('id')
+const resolveRouteServerId = () => {
+  if (route.params.id) return String(route.params.id)
+  if (typeof window !== 'undefined') {
+    return String(new URLSearchParams(window.location.search).get('id') || '')
+  }
+  return ''
 }
 
-if (!serverId) {
+const resolveRouteApiIndex = () => {
+  const indexParam = route.query.apiIndex
+  if (indexParam === undefined || indexParam === null) return 0
+  const parsed = parseInt(indexParam, 10)
+  return Number.isNaN(parsed) ? 0 : parsed
+}
+
+const serverId = ref(resolveRouteServerId())
+
+if (!serverId.value) {
   router.push('/')
 }
 
-const apiIndex = ref(0)
-const indexParam = route.query.apiIndex
-if (indexParam !== undefined && indexParam !== null && !isNaN(parseInt(indexParam))) {
-  apiIndex.value = parseInt(indexParam)
-}
+const apiIndex = ref(resolveRouteApiIndex())
 
 const server = ref({})
 const REALTIME_HISTORY_HOURS = 0.167
@@ -446,6 +488,12 @@ const showLoginModal = ref(false)
 const showLiveTimeoutModal = ref(false)
 const frontendWsTimeoutMinutes = ref(0)
 const loading = ref(true)
+const loadError = ref(false)
+const now = ref(Date.now())
+let isUnmounted = false
+let initChartsTimer = null
+let nowUpdateInterval = null
+let historyRequestVersion = 0
 
 const trans = useTranslation()
 
@@ -563,7 +611,7 @@ const timeOptions = computed(() => {
   ]
 })
 
-const isOnline = computed(() => isServerOnline(server.value))
+const isOnline = computed(() => isServerOnline(server.value, now.value))
 
 const cpuPercent = computed(() => (parseFloat(server.value.cpu) || 0).toFixed(1))
 
@@ -1217,7 +1265,38 @@ const updateChartsTheme = () => {
 }
 
 const { onThemeChange } = useTheme()
-onThemeChange(updateChartsTheme)
+const stopThemeChange = onThemeChange(updateChartsTheme)
+
+const handleThemeOptionsChanged = () => {
+  requestAnimationFrame(() => {
+    if (!isUnmounted) updateChartsTheme()
+  })
+}
+
+const syncChartLocaleLabels = () => {
+  const loadChart = charts.load
+  if (loadChart?.data?.datasets?.length >= 3) {
+    loadChart.data.datasets[0].label = trans.value.load1m || '1 Min'
+    loadChart.data.datasets[1].label = trans.value.load5m || '5 Min'
+    loadChart.data.datasets[2].label = trans.value.load15m || '15 Min'
+    loadChart.update('none')
+  }
+  const probeKeys = ['ct', 'cu', 'cm', 'bd', 'node_1', 'node_2', 'node_3', 'node_4']
+  for (const chartKey of ['ping', 'loss']) {
+    const chart = charts[chartKey]
+    if (!chart?.data?.datasets) continue
+    probeKeys.forEach((key, index) => {
+      if (chart.data.datasets[index]) {
+        chart.data.datasets[index].label = pingLabel(key)
+      }
+    })
+    chart.update('none')
+  }
+}
+
+watch(currentLang, () => {
+  if (chartsReady.value) syncChartLocaleLabels()
+})
 
 // ≤1h: gap超过5分钟断线; >1h: 按 long_history_points 计算采样间隔，允许点落在桶内不同位置造成的正常漂移
 const getHistoryGapBreakMs = (hours = currentHours.value) => {
@@ -1358,9 +1437,30 @@ const clearDiskIoChart = () => {
   chart.update('none')
 }
 
+const clearAllChartsData = () => {
+  Object.values(charts).forEach(chart => {
+    if (!chart) return
+    for (const dataset of chart.data.datasets || []) {
+      dataset.data = []
+    }
+    chart.data.labels = []
+    chart.update('none')
+  })
+  Object.values(avgPingRefs).forEach(item => { item.value = null })
+  Object.values(avgLossRefs).forEach(item => { item.value = null })
+  hasDiskIoData.value = false
+  if (hasValidDiskIoPayload(server.value) && server.value.last_updated) {
+    appendDiskIoChart(server.value, new Date(server.value.last_updated).getTime())
+  }
+}
+
 const loadAllHistory = async (hours) => {
+  const requestVersion = ++historyRequestVersion
+  const targetServerId = serverId.value
+  const targetApiIndex = apiIndex.value
   try {
-    const allData = await fetchAllHistory(serverId, hours, apiIndex.value)
+    const allData = await fetchAllHistory(targetServerId, hours, targetApiIndex)
+    if (isUnmounted || requestVersion !== historyRequestVersion || targetServerId !== serverId.value || targetApiIndex !== apiIndex.value) return
     lastReportChartUpdateTime = 0
     lossHistoryFields.value = Object.fromEntries(PING_FIELD_DEFS.map(item => [
       item.lossField,
@@ -1444,24 +1544,35 @@ const loadAllHistory = async (hours) => {
       avgLossNode3.value = avg(allData, 'loss_node_3', false)
       avgLossNode4.value = avg(allData, 'loss_node_4', false)
       syncProbeChartVisibility()
+    } else {
+      clearAllChartsData()
+      syncProbeChartVisibility()
     }
 
     updateAllChartTimeUnits(hours)
     historyLoaded.value = true
 
     await nextTick()
+    if (isUnmounted || requestVersion !== historyRequestVersion) return
 
     requestAnimationFrame(() => {
+      if (isUnmounted || requestVersion !== historyRequestVersion) return
       Object.values(charts).forEach(chart => {
+        if (!chart) return
         chart.resize()
         chart.update('none')
       })
     })
   } catch (e) {
+    if (isUnmounted || requestVersion !== historyRequestVersion) return
     if (e && e.status === 401) {
       showLoginModal.value = true
+      const shouldReloadRealtime = hours !== REALTIME_HISTORY_HOURS
       currentHours.value = REALTIME_HISTORY_HOURS
       historyLoaded.value = true
+      if (shouldReloadRealtime) {
+        loadAllHistory(REALTIME_HISTORY_HOURS)
+      }
       return
     }
 
@@ -1599,7 +1710,7 @@ const scheduleLatestReportReplay = (event, delay) => {
 }
 
 const toReplayEvents = (update, messageTs = Date.now()) => {
-  if (!update || String(update.serverId) !== String(serverId)) return []
+  if (!update || String(update.serverId) !== String(serverId.value)) return []
   const samples = Array.isArray(update.samples) ? update.samples : []
   return samples
     .map(sample => {
@@ -1753,10 +1864,17 @@ const fetchCurrentStatus = async (incomingData, options = {}) => {
     } = options
     let data = incomingData
     if (!data) {
-      data = await fetchServerDetail(serverId, apiIndex.value)
-      if (!data) return
+      const targetServerId = serverId.value
+      const targetApiIndex = apiIndex.value
+      data = await fetchServerDetail(targetServerId, targetApiIndex)
+      if (isUnmounted || targetServerId !== serverId.value || targetApiIndex !== apiIndex.value) return null
+      if (!data) {
+        loadError.value = true
+        loading.value = false
+        return null
+      }
     }
-    if (!data) return
+    if (!data) return null
 
     if (incomingData) {
       const newServer = { ...server.value }
@@ -1775,6 +1893,7 @@ const fetchCurrentStatus = async (incomingData, options = {}) => {
       config.value = data.sysConfig || null
       server.value = data
       markDiskIoDataAvailable(data)
+      loadError.value = false
       loading.value = false
     }
     syncProbeChartVisibility()
@@ -1791,6 +1910,10 @@ const fetchCurrentStatus = async (incomingData, options = {}) => {
     return data
   } catch (e) {
     console.error('[ERROR] Update status failed:', e)
+    if (!incomingData && !isUnmounted) {
+      loadError.value = true
+      loading.value = false
+    }
     return null
   }
 }
@@ -1816,25 +1939,45 @@ const goToLogin = () => {
 let liveSocket = null
 let liveConnectionClosedByUser = false
 
-const initChartsOnMount = async () => {
-  if (isInitializingCharts || chartsReady.value) return
+const clearInitChartsTimer = () => {
+  if (initChartsTimer) {
+    clearTimeout(initChartsTimer)
+    initChartsTimer = null
+  }
+}
+
+const areAllChartRefsReady = () => Boolean(
+  cpuChartRef.value && gpuChartRef.value && gpuMemChartRef.value && gpuClockChartRef.value && gpuPowerChartRef.value &&
+  ramChartRef.value && diskChartRef.value && diskIoChartRef.value && netChartRef.value && procChartRef.value &&
+  connChartRef.value && pingChartRef.value && lossChartRef.value && loadChartRef.value
+)
+
+const initChartsOnMount = async (maxAttempts = 40) => {
+  if (chartsReady.value) return true
+  if (isUnmounted || loadError.value || isInitializingCharts) return false
   isInitializingCharts = true
 
-  await nextTick()
-  
-  const allRefsReady = cpuChartRef.value && gpuChartRef.value && gpuMemChartRef.value && gpuClockChartRef.value && gpuPowerChartRef.value && ramChartRef.value && diskChartRef.value && diskIoChartRef.value &&
-    netChartRef.value && procChartRef.value && connChartRef.value && pingChartRef.value && lossChartRef.value && loadChartRef.value
-  
-  if (allRefsReady) {
-    try {
-      initCharts()
-      chartsReady.value = true
-    } finally {
-      isInitializingCharts = false
+  try {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      await nextTick()
+      if (isUnmounted || loadError.value) return false
+      if (areAllChartRefsReady()) {
+        initCharts()
+        chartsReady.value = true
+        return true
+      }
+      await new Promise((resolve) => {
+        clearInitChartsTimer()
+        initChartsTimer = setTimeout(() => {
+          initChartsTimer = null
+          resolve()
+        }, 30)
+      })
     }
-  } else {
+    return chartsReady.value
+  } finally {
+    clearInitChartsTimer()
     isInitializingCharts = false
-    setTimeout(initChartsOnMount, 30)
   }
 }
 
@@ -1865,7 +2008,7 @@ const continueLiveConnection = () => {
 const handleLiveMessage = (msg) => {
   if (!msg || msg.type !== 'batchUpdate') return
   const updates = Array.isArray(msg.updates) ? msg.updates : []
-  const matchedUpdates = updates.filter(update => update && String(update.serverId) === String(serverId))
+  const matchedUpdates = updates.filter(update => update && String(update.serverId) === String(serverId.value))
   if (matchedUpdates.length === 0) return
 
   clearLatestReportReplayTimers()
@@ -1895,17 +2038,68 @@ const loadThemeOptionsFromConfig = async () => {
   }
 }
 
+let initVersion = 0
+
+const resetDetailState = () => {
+  historyRequestVersion++
+  clearInitChartsTimer()
+  clearLatestReportReplayTimers()
+  if (liveSocket) {
+    liveSocket.close()
+    liveSocket = null
+  }
+  liveConnectionClosedByUser = false
+  showLiveTimeoutModal.value = false
+  showLoginModal.value = false
+  safeDestroyCharts()
+  chartsReady.value = false
+  isInitializingCharts = false
+  lastGpuSignature = ''
+  lastReportChartUpdateTime = 0
+  historyLoaded.value = false
+  hasDiskIoData.value = false
+  lossHistoryFields.value = {}
+  server.value = {}
+  config.value = null
+  lastUpdateText.value = ''
+  currentHours.value = REALTIME_HISTORY_HOURS
+  Object.values(avgPingRefs).forEach(item => { item.value = null })
+  Object.values(avgLossRefs).forEach(item => { item.value = null })
+}
+
 const init = async () => {
+  const currentServerId = serverId.value
+  const currentApiIndex = apiIndex.value
+  if (!currentServerId || isUnmounted) return
+  const version = ++initVersion
+  const isStaleInit = () => (
+    isUnmounted ||
+    version !== initVersion ||
+    currentServerId !== serverId.value ||
+    currentApiIndex !== apiIndex.value
+  )
+
+  loading.value = true
+  loadError.value = false
+
   const [initialData] = await Promise.all([
     fetchCurrentStatus(),
     loadThemeOptionsFromConfig()
   ])
-  await initChartsOnMount()
+  if (isStaleInit() || !initialData) return
+
+  const ready = await initChartsOnMount()
+  if (isStaleInit() || !ready) return
 
   await loadAllHistory(currentHours.value)
+  if (isStaleInit()) return
   replayLatestReportUpdates(initialData)
 
-  liveSocket = createLiveSocket(String(serverId), {
+  if (liveSocket) {
+    liveSocket.close()
+    liveSocket = null
+  }
+  liveSocket = createLiveSocket(String(currentServerId), {
     replay: false,
     timeoutMinutes: frontendWsTimeoutMinutes.value,
     onMessage: handleLiveMessage,
@@ -1913,24 +2107,74 @@ const init = async () => {
       showLiveTimeoutModal.value = true
     },
     onStatus: ({ connected }) => {}
-  }, apiIndex.value)
+  }, currentApiIndex)
 
+  document.removeEventListener('visibilitychange', handleVisibility)
   document.addEventListener('visibilitychange', handleVisibility)
 }
 
+const retryInit = () => {
+  init()
+}
+
+watch(
+  () => [route.name, route.params.id, route.query.apiIndex],
+  () => {
+    if (route.name !== 'Server') return
+    const nextServerId = resolveRouteServerId()
+    const nextApiIndex = resolveRouteApiIndex()
+    if (nextServerId === serverId.value && nextApiIndex === apiIndex.value) return
+
+    resetDetailState()
+    serverId.value = nextServerId
+    apiIndex.value = nextApiIndex
+    if (!nextServerId) {
+      router.push('/')
+      return
+    }
+    init()
+  }
+)
+
 watch([cpuChartRef, gpuChartRef, gpuMemChartRef, gpuClockChartRef, gpuPowerChartRef, ramChartRef, diskChartRef, diskIoChartRef, netChartRef, procChartRef, connChartRef, pingChartRef, lossChartRef, loadChartRef], () => {
-  if (!chartsReady.value) {
+  if (!chartsReady.value && !loading.value && !loadError.value) {
     initChartsOnMount()
   }
 })
 
+const handleDetailKeyDown = (event) => {
+  if (event.key !== 'Escape') return
+  if (showLoginModal.value) {
+    showLoginModal.value = false
+  }
+}
+
 onMounted(() => {
+  window.addEventListener('keydown', handleDetailKeyDown)
+  window.addEventListener('theme-options-changed', handleThemeOptionsChanged)
+  nowUpdateInterval = setInterval(() => {
+    now.value = Date.now()
+  }, 1000)
   init()
 })
 
 onUnmounted(() => {
+  isUnmounted = true
+  initVersion++
+  historyRequestVersion++
+  clearInitChartsTimer()
+  if (nowUpdateInterval) {
+    clearInterval(nowUpdateInterval)
+    nowUpdateInterval = null
+  }
+  stopThemeChange()
+  window.removeEventListener('keydown', handleDetailKeyDown)
+  window.removeEventListener('theme-options-changed', handleThemeOptionsChanged)
   document.removeEventListener('visibilitychange', handleVisibility)
-  if (liveSocket) liveSocket.close()
+  if (liveSocket) {
+    liveSocket.close()
+    liveSocket = null
+  }
   clearLatestReportReplayTimers()
   lastGpuSignature = ''
   safeDestroyCharts()
