@@ -8,7 +8,7 @@
             <OsIcon :os="server.os" />
           </span>
           <span v-else class="country-os-icons">
-            <span class="flag-fallback">🏳️</span>
+            <span class="flag-fallback"><Flag :size="14" aria-hidden="true" /></span>
             <OsIcon :os="server.os" />
           </span>
           <span class="server-name">{{ server.name }}</span>
@@ -17,9 +17,9 @@
       </div>
       <div class="server-meta">
         <div class="card-meta">
-          <div v-if="sysConfig.show_price && priceText" class="card-meta-item">💰 {{ priceText }}</div>
+          <div v-if="sysConfig.show_price && priceText" class="card-meta-item"><Coins :size="13" aria-hidden="true" /><span>{{ priceText }}</span></div>
           <div v-if="sysConfig.show_expire && server.expire_date" class="card-meta-item card-meta-expire">
-            📅 <span :class="{ 'expired': isExpired }">{{ expireText }}</span>
+            <Calendar :size="13" aria-hidden="true" /><span :class="{ 'expired': isExpired }">{{ expireText }}</span>
             <span v-if="expireDateTitle" class="card-meta-tooltip">{{ expireDateTitle }}</span>
           </div>
         </div>
@@ -109,7 +109,7 @@
         </div>
         <div class="server-card-limit-bar">
           <div v-if="trafficLimitSummary" class="server-card-limit-fill" :style="{ width: Math.min(100, trafficUsagePercent) + '%', background: getUsageColor(trafficUsagePercent) }"></div>
-          <div v-else class="server-card-limit-fill" style="background-image: linear-gradient(to right, #00d4aa, #4da6ff, #ffb870, #f85149);">></div>
+          <div v-else class="server-card-limit-fill" style="background-image: linear-gradient(to right, #00d4aa, #4da6ff, #ffb870, #f85149);"></div>
         </div>
       </div>
       <ServerLatencyPanel
@@ -132,6 +132,7 @@
 </template>
 
 <script setup>
+import { Calendar, Coins, Flag } from 'lucide-vue-next'
 import OsIcon from './OsIcon.vue'
 import ServerLatencyPanel from './ServerLatencyPanel.vue'
 import { DEFAULT_SERVER_CARD_CONFIG, useServerCardData } from '../composables/useServerCardData'

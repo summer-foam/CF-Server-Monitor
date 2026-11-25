@@ -51,7 +51,7 @@
 </template>
 
 <script setup>
-import { nextTick, onBeforeUnmount, ref } from 'vue'
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 
 const props = defineProps({
   text: { type: String, default: '' },
@@ -163,14 +163,34 @@ const handleDocumentPointerDown = event => {
   closeTooltip()
 }
 
-window.addEventListener('resize', updatePosition)
-window.addEventListener('scroll', updatePosition, true)
-document.addEventListener('pointerdown', handleDocumentPointerDown)
+let listenersBound = false
 
-onBeforeUnmount(() => {
-  clearCloseTimer()
+const bindGlobalListeners = () => {
+  if (listenersBound || typeof window === 'undefined' || typeof document === 'undefined') return
+  listenersBound = true
+  window.addEventListener('resize', updatePosition)
+  window.addEventListener('scroll', updatePosition, true)
+  document.addEventListener('pointerdown', handleDocumentPointerDown)
+}
+
+const unbindGlobalListeners = () => {
+  if (!listenersBound || typeof window === 'undefined' || typeof document === 'undefined') return
+  listenersBound = false
   window.removeEventListener('resize', updatePosition)
   window.removeEventListener('scroll', updatePosition, true)
   document.removeEventListener('pointerdown', handleDocumentPointerDown)
+}
+
+watch(open, (isOpen) => {
+  if (isOpen) {
+    bindGlobalListeners()
+  } else {
+    unbindGlobalListeners()
+  }
+}, { flush: 'sync' })
+
+onBeforeUnmount(() => {
+  clearCloseTimer()
+  unbindGlobalListeners()
 })
 </script>

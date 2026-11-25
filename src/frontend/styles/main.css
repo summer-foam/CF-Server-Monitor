@@ -791,7 +791,8 @@ body::before {
 }
 
 .filter-tag-icon {
-    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
     line-height: 1;
 }
 
@@ -1184,11 +1185,15 @@ body::before {
 
 .card-meta {
     display: flex;
+    align-items: center;
     gap: 12px;
 }
 
 .card-meta-item {
     position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .card-meta-tooltip {
@@ -1637,6 +1642,9 @@ body::before {
 
 .stat-limit {
     color: var(--accent-yellow);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 /* --------------------------------------------------------------------------
@@ -2385,6 +2393,10 @@ body::before {
 .donation-token {
     color: var(--accent-yellow);
     font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
 }
 
 .donation-qr-card {
@@ -3033,6 +3045,9 @@ body::before {
     padding: 4px 8px;
     border-radius: 4px;
     transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .modal-close:hover {
@@ -3365,6 +3380,9 @@ body.theme-config-open .container {
     letter-spacing: 1px;
     margin-bottom: 6px;
     font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .sysinfo-value {
@@ -3884,8 +3902,8 @@ body.server-row-drag-active * {
 }
 
 .empty-state .empty-icon {
-    font-size: 40px;
-    display: block;
+    display: flex;
+    justify-content: center;
     margin-bottom: 12px;
     opacity: 0.5;
 }
@@ -4122,6 +4140,10 @@ body.server-row-drag-active * {
     text-transform: uppercase;
     letter-spacing: 1px;
     transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
 }
 
 .login-btn:hover {
@@ -4280,8 +4302,10 @@ body.server-row-drag-active * {
 .flag-fallback {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     line-height: 1;
     width: 18px;
+    color: var(--text-muted);
 }
 
 .os-icon-img {
@@ -4967,11 +4991,12 @@ body.mikus-theme .mikus-stats-mascot-img {
     transform: translateY(-50%);
     background: transparent;
     border: none;
+    color: var(--text-muted);
     cursor: pointer;
     font-size: 16px;
     padding: 4px;
     border-radius: 4px;
-    transition: background 0.2s;
+    transition: background 0.2s, color 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4981,6 +5006,7 @@ body.mikus-theme .mikus-stats-mascot-img {
 
 .password-toggle:hover {
     background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
 }
 
 /* --------------------------------------------------------------------------
@@ -5083,10 +5109,39 @@ body.mikus-theme .mikus-stats-mascot-img {
 
 .warning-icon {
     color: var(--accent-yellow);
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
 }
 
 .danger-icon {
     color: var(--accent-red);
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.success-icon {
+    color: var(--accent-green);
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.inline-icon {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+}
+
+@keyframes lucide-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.lucide-spin {
+    animation: lucide-spin 1s linear infinite;
 }
 
 .warning-box {

@@ -390,9 +390,13 @@ export function useServerCardData(props) {
     return normalizeProbeMetricValue(last[key]) === false
   }
 
-  const buildThreeNetRow = (def) => {
+  const resolveProbeLabel = (def) => {
     const customName = props.sysConfig?.[def.nameKey]
-    const label = String(customName || trans.value[def.labelKey] || def.fallbackLabel)
+    return String(customName || (def.labelKey ? trans.value[def.labelKey] : '') || def.fallbackLabel)
+  }
+
+  const buildThreeNetRow = (def) => {
+    const label = resolveProbeLabel(def)
     const pingSeries = getLatencySeries('ping', def.key)
     const lossSeries = getLatencySeries('loss', def.key)
     const pointCount = Math.max(pingSeries.length, lossSeries.length, getLatencyWindowPointCount())
@@ -449,16 +453,19 @@ export function useServerCardData(props) {
 
   const hasThreeNetDetails = computed(() => threeNetDetails.value.length > 0)
 
-  const pingList = computed(() => [
-    { label: 'CT', value: props.server.ping_ct },
-    { label: 'CU', value: props.server.ping_cu },
-    { label: 'CM', value: props.server.ping_cm },
-    { label: 'BGP', value: props.server.ping_bd },
-    { label: props.server.node_1_name || 'Node 1', value: props.server.ping_node_1 },
-    { label: props.server.node_2_name || 'Node 2', value: props.server.ping_node_2 },
-    { label: props.server.node_3_name || 'Node 3', value: props.server.ping_node_3 },
-    { label: props.server.node_4_name || 'Node 4', value: props.server.ping_node_4 }
-  ].filter(ping => !isPingDisabled(ping.value)))
+  const pingList = computed(() => THREE_NET_DEFS
+    .map(def => ({
+      key: def.key,
+      label: resolveProbeLabel(def),
+      value: props.server[def.pingField]
+    }))
+    .filter(ping => (
+      !isPingDisabled(ping.value) &&
+      ping.value !== undefined &&
+      ping.value !== '' &&
+      ping.value !== 0 &&
+      ping.value !== '0'
+    )))
 
   const hasPingData = computed(() => pingList.value.length > 0)
 

@@ -7,7 +7,7 @@
           <OsIcon :os="server.os" />
         </span>
         <span v-else class="country-os-icons">
-          <span class="flag-fallback">🏳️</span>
+          <span class="flag-fallback"><Flag :size="14" aria-hidden="true" /></span>
           <OsIcon :os="server.os" />
         </span>
         <span class="server-name">{{ server.name }}</span>
@@ -16,9 +16,9 @@
     </div>
     <div class="server-meta">
       <div class="card-meta">
-        <div v-if="sysConfig.show_price && priceText" class="card-meta-item">💰 {{ priceText }}</div>
+        <div v-if="sysConfig.show_price && priceText" class="card-meta-item"><Coins :size="13" aria-hidden="true" /><span>{{ priceText }}</span></div>
         <div v-if="sysConfig.show_expire && server.expire_date" class="card-meta-item card-meta-expire">
-          📅 <span :class="{ 'expired': isExpired }">{{ expireText }}</span>
+          <Calendar :size="13" aria-hidden="true" /><span :class="{ 'expired': isExpired }">{{ expireText }}</span>
           <span v-if="expireDateTitle" class="card-meta-tooltip">{{ expireDateTitle }}</span>
         </div>
       </div>
@@ -96,7 +96,7 @@
         <div class="stat-content">
           <span class="net-down">▼ {{ totalRxMonthly }}</span>
           <span class="net-up">▲ {{ totalTxMonthly }}</span>
-          <span v-if="sysConfig.show_tf && server.traffic_limit" class="stat-limit">/ 📦 {{ formatBytes(server.traffic_limit * 1024 * 1024 * 1024) }}</span>
+          <span v-if="sysConfig.show_tf && server.traffic_limit" class="stat-limit">/ <Package :size="12" aria-hidden="true" /> {{ formatBytes(server.traffic_limit * 1024 * 1024 * 1024) }}</span>
         </div>
       </div>
     </div>
@@ -119,6 +119,7 @@
 </template>
 
 <script setup>
+import { Calendar, Coins, Flag, Package } from 'lucide-vue-next'
 import OsIcon from './OsIcon.vue'
 import ServerLatencyPanel from './ServerLatencyPanel.vue'
 import { DEFAULT_SERVER_CARD_CONFIG, useServerCardData } from '../composables/useServerCardData'

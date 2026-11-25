@@ -1,10 +1,11 @@
+import { getPublicAssetUrl } from './config.js'
+
 export const normalizeThemeOptions = (options) => {
   return options && typeof options === 'object' && !Array.isArray(options)
     ? options
     : {}
 }
 
-const MIKUS_ASSET_BASE = '/mikus'
 const MIKUS_SAKURA_ID = 'mikus-global-sakura-background'
 const MIKUS_SAKURA_COUNT = 15
 
@@ -152,7 +153,7 @@ export const applyCustomColors = (options) => {
 
 export const getMikusAssetUrl = (filename) => {
   const normalizedFilename = String(filename || '').replace(/^\/+/, '')
-  return `${MIKUS_ASSET_BASE}/${normalizedFilename}`
+  return getPublicAssetUrl(`mikus/${normalizedFilename}`)
 }
 
 const ensureMikusSakuraBackground = () => {

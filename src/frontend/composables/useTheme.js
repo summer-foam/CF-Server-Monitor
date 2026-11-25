@@ -1,8 +1,8 @@
-import { ref, onMounted } from "vue";
-import { STORAGE } from "../utils/constants";
+import { ref } from "vue";
+import { STORAGE } from "../utils/constants.js";
 
 const STORAGE_KEY = STORAGE.THEME_PREFERENCE;
-const themeChangeCallbacks = [];
+const themeChangeCallbacks = new Set();
 
 const currentTheme = ref("auto");
 let defaultTheme = "auto";
@@ -38,7 +38,13 @@ const applyTheme = (theme) => {
   if (resolved !== "dark") {
     document.body.classList.add(resolved);
   }
-  themeChangeCallbacks.forEach((cb) => cb(resolved));
+  themeChangeCallbacks.forEach((cb) => {
+    try {
+      cb(resolved);
+    } catch (e) {
+      console.error("[ERROR] Theme change callback failed:", e);
+    }
+  });
 };
 
 // 模块级媒体查询监听器:仅注册一次,系统明暗变化且处于 auto 模式时实时切换
@@ -94,12 +100,12 @@ export const useTheme = () => {
   };
 
   const onThemeChange = (callback) => {
-    themeChangeCallbacks.push(callback);
+    if (typeof callback !== "function") return () => {};
+    themeChangeCallbacks.add(callback);
+    return () => {
+      themeChangeCallbacks.delete(callback);
+    };
   };
-
-  onMounted(() => {
-    initTheme();
-  });
 
   return {
     currentTheme,

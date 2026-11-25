@@ -6,33 +6,23 @@
     title="Theme Config"
     @click="openModal"
   >
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <line x1="4" x2="4" y1="21" y2="14"></line>
-      <line x1="4" x2="4" y1="10" y2="3"></line>
-      <line x1="12" x2="12" y1="21" y2="12"></line>
-      <line x1="12" x2="12" y1="8" y2="3"></line>
-      <line x1="20" x2="20" y1="21" y2="16"></line>
-      <line x1="20" x2="20" y1="12" y2="3"></line>
-      <line x1="1" x2="7" y1="14" y2="14"></line>
-      <line x1="9" x2="15" y1="8" y2="8"></line>
-      <line x1="17" x2="23" y1="16" y2="16"></line>
-    </svg>
+    <SlidersHorizontal :size="16" aria-hidden="true" />
   </button>
 
   <Teleport to="body">
     <Transition name="theme-config-drawer">
-      <div v-if="modalOpen" class="theme-config-overlay">
+      <div v-if="modalOpen" class="theme-config-overlay" @click.self="closeModal">
       <div class="theme-config-drawer" role="dialog" aria-modal="true">
         <div class="drawer-header">
           <div class="modal-title">$ Theme Config</div>
-          <button type="button" class="modal-close" :aria-label="trans.close" @click="closeModal">✕</button>
+          <button type="button" class="modal-close" :aria-label="trans.close" @click="closeModal"><X :size="18" aria-hidden="true" /></button>
         </div>
 
         <div class="drawer-body">
           <section class="drawer-section">
             <label class="theme-config-label" for="three-net-panel-count">{{ trans.threeNetPanelCount }}</label>
             <div class="theme-config-stepper">
-              <button type="button" class="btn" :disabled="countValue <= MIN_THREE_NET_PANEL_COUNT" @click="stepCount(-1)">−</button>
+              <button type="button" class="btn" :disabled="countValue <= MIN_THREE_NET_PANEL_COUNT" @click="stepCount(-1)"><Minus :size="14" aria-hidden="true" /></button>
               <input
                 id="three-net-panel-count"
                 v-model.number="countValue"
@@ -43,7 +33,7 @@
                 step="1"
                 @input="applyDraftPreview"
               >
-              <button type="button" class="btn" :disabled="countValue >= MAX_THREE_NET_PANEL_COUNT" @click="stepCount(1)">+</button>
+              <button type="button" class="btn" :disabled="countValue >= MAX_THREE_NET_PANEL_COUNT" @click="stepCount(1)"><Plus :size="14" aria-hidden="true" /></button>
             </div>
           </section>
 
@@ -70,7 +60,6 @@
           </section>
 
           <p v-if="errorMessage" class="theme-config-error">{{ errorMessage }}</p>
-          <p v-else-if="savedMessage" class="theme-config-saved">{{ savedMessage }}</p>
         </div>
 
         <div class="drawer-footer">
@@ -88,6 +77,7 @@
 
 <script setup>
 import { inject, onUnmounted, ref } from 'vue'
+import { Minus, Plus, SlidersHorizontal, X } from 'lucide-vue-next'
 import { http } from '../utils/http'
 import { useTranslation } from '../utils/i18n'
 import { STORAGE } from '../utils/constants'
@@ -111,11 +101,36 @@ const countValue = ref(DEFAULT_THREE_NET_PANEL_COUNT)
 const presetValue = ref('default')
 const saving = ref(false)
 const errorMessage = ref('')
-const savedMessage = ref('')
 
 const setPageShift = (open) => {
   if (typeof document === 'undefined' || !document.body) return
   document.body.classList.toggle('theme-config-open', open)
+}
+
+const restoreSavedThemeOptions = () => {
+  const saved = normalizeThemeOptions(appConfig?.theme_options)
+  applyMikusThemeOptions(saved)
+  applyCustomColors(saved)
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('theme-options-changed', { detail: saved }))
+  }
+}
+
+const handleKeyDown = (event) => {
+  if (event.key === 'Escape' && modalOpen.value) {
+    closeModal()
+  }
+}
+
+const bindEscListener = () => {
+  if (typeof window === 'undefined') return
+  window.removeEventListener('keydown', handleKeyDown)
+  window.addEventListener('keydown', handleKeyDown)
+}
+
+const unbindEscListener = () => {
+  if (typeof window === 'undefined') return
+  window.removeEventListener('keydown', handleKeyDown)
 }
 
 const presetSwatches = (preset, mode) => [
@@ -142,18 +157,20 @@ const openModal = () => {
   countValue.value = getThreeNetPanelCount(appConfig?.theme_options)
   presetValue.value = getColorPresetKey(appConfig?.theme_options)
   errorMessage.value = ''
-  savedMessage.value = ''
   modalOpen.value = true
   setPageShift(true)
+  bindEscListener()
 }
 
 const closeModal = () => {
   if (saving.value) return
+  const wasOpen = modalOpen.value
   modalOpen.value = false
   setPageShift(false)
-  const saved = normalizeThemeOptions(appConfig?.theme_options)
-  applyCustomColors(saved)
-  window.dispatchEvent(new CustomEvent('theme-options-changed', { detail: saved }))
+  unbindEscListener()
+  if (wasOpen) {
+    restoreSavedThemeOptions()
+  }
 }
 
 const setPreset = (key) => {
@@ -172,14 +189,12 @@ const resetConfig = () => {
   countValue.value = DEFAULT_THREE_NET_PANEL_COUNT
   presetValue.value = 'default'
   errorMessage.value = ''
-  savedMessage.value = ''
   applyDraftPreview()
 }
 
 const saveConfig = async () => {
   if (saving.value) return
   errorMessage.value = ''
-  savedMessage.value = ''
 
   const count = Number(countValue.value)
   if (countValue.value === '' || !Number.isInteger(count) || count < MIN_THREE_NET_PANEL_COUNT || count > MAX_THREE_NET_PANEL_COUNT) {
@@ -209,8 +224,17 @@ const saveConfig = async () => {
   applyMikusThemeOptions(savedOptions)
   applyCustomColors(savedOptions)
   window.dispatchEvent(new CustomEvent('theme-options-changed', { detail: savedOptions }))
-  closeModal()
+  modalOpen.value = false
+  setPageShift(false)
+  unbindEscListener()
 }
 
-onUnmounted(() => setPageShift(false))
+onUnmounted(() => {
+  unbindEscListener()
+  setPageShift(false)
+  if (modalOpen.value) {
+    modalOpen.value = false
+    restoreSavedThemeOptions()
+  }
+})
 </script>
