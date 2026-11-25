@@ -371,7 +371,7 @@ export function buildResourceAlertNotificationPayloads(alertNodes, recoveredNode
     buildGroupedResourceAlertEntries(alertNodes, 'triggerValue', messages),
     {
       event: messages.events.resourceAlert,
-      emoji: '❌'
+      emoji: ''
     }
   );
   appendResourceAlertNotificationChunks(
@@ -379,7 +379,7 @@ export function buildResourceAlertNotificationPayloads(alertNodes, recoveredNode
     buildGroupedResourceAlertEntries(recoveredNodes, 'current', messages),
     {
       event: messages.events.resourceRecovered,
-      emoji: '✅'
+      emoji: ''
     }
   );
   return payloads;
@@ -487,7 +487,7 @@ async function fetchWithRetry(url, options, retries = NOTIFICATION_MAX_RETRIES) 
 function stripMarkdown(value) {
   return String(value || '')
     .replace(/\*\*/g, '')
-    .replace(/^[\s✅⚠️⏰💌•-]+/u, '')
+    .replace(/^[\s•-]+/u, '')
     .trim();
 }
 
@@ -519,14 +519,6 @@ function normalizeNotificationClients(context = {}) {
   return ['CF Server Monitor'];
 }
 
-function inferNotificationEmoji(event) {
-  const normalizedEvent = String(event || '');
-  if (/恢复|测试|成功/.test(normalizedEvent)) return '✅';
-  if (/到期|提醒/.test(normalizedEvent)) return '⚠️';
-  if (/离线|告警|失败|异常/.test(normalizedEvent)) return '❌';
-  return 'ℹ️';
-}
-
 function buildNotificationContext(settings, msg, context = {}) {
   const now = formatCurrentTime(settings);
   const clients = normalizeNotificationClients(context);
@@ -535,9 +527,9 @@ function buildNotificationContext(settings, msg, context = {}) {
     : clients.length;
   const event = context.event || inferNotificationEvent(msg, getNotificationMessages(settings).events.notification);
   return {
-    title: '💌 Cloudflare Server Monitor',
+    title: 'Cloudflare Server Monitor',
     event,
-    emoji: context.emoji || inferNotificationEmoji(event),
+    emoji: context.emoji || '',
     client: context.client || clients.join(', '),
     clients: clients.join(', '),
     count: String(count),
@@ -735,7 +727,7 @@ export async function evaluateTrafficAlert(env, server, metrics, hooks = {}) {
     const msg = `${serverName}  ${usage}`;
     const err = await sendNotification(settings, msg, {
       event: messages.events.trafficAlert,
-      emoji: '📈',
+      emoji: '',
       clients: [serverName],
       count: 1,
       message: msg
@@ -1121,7 +1113,7 @@ export async function checkOfflineNodes(db, options = {}) {
       const msg = nodeList;
       await sendNotification(siteSettings, msg, {
         event: messages.events.offline,
-        emoji: '❌',
+        emoji: '',
         clients: offlineNodes.map(n => n.name),
         count: offlineNodes.length,
         message: nodeList
@@ -1133,7 +1125,7 @@ export async function checkOfflineNodes(db, options = {}) {
       const msg = nodeList;
       await sendNotification(siteSettings, msg, {
         event: messages.events.recovered,
-        emoji: '✅',
+        emoji: '',
         clients: recoveredNodes.map(n => n.name),
         count: recoveredNodes.length,
         message: nodeList
@@ -1391,7 +1383,7 @@ export async function checkExpiringServers(db, options = {}) {
         try {
           await sendNotification(siteSettings, renewalList, {
             event: messages.events.renewed,
-            emoji: '✅',
+            emoji: '',
             clients: renewedServers.map(s => s.name),
             count: renewedServers.length,
             message: renewalList
@@ -1409,7 +1401,7 @@ export async function checkExpiringServers(db, options = {}) {
       try {
         await sendNotification(siteSettings, msg, {
           event: messages.events.expiring,
-          emoji: '⚠️',
+          emoji: '',
           clients: expiringServers.map(s => s.name),
           count: expiringServers.length,
           message: serverList

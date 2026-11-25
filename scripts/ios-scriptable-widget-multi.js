@@ -894,7 +894,7 @@ function buildWidget(data) {
   root.layoutVertically();
   root.size = new Size(w, h);
 
-  const time = data.staleAt ? `⚠ 缓存 ${cacheTime(data.staleAt)}` : hhmm();
+  const time = data.staleAt ? `缓存 ${cacheTime(data.staleAt)}` : hhmm();
   const corner = (!two && pg.count > 1 ? `${pg.index}/${pg.count} 页 · ` : "") + (data.staleAt || family === "small" ? time : `更新 ${time}`);
   const server = data.servers[0];
   if (two) addTwoCards(root, data, w, h, corner);

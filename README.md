@@ -413,7 +413,7 @@ smtp://<用户名>:<密码>@<host>:<port>?from=<发件人>&to=<收件人1,收件
 自定义 Webhook 支持 `GET` 和 `POST`：
 
 - `POST`：可选择 `JSON`、`x-www-form-urlencoded` 或 `Text`。默认 JSON 请求体为 `title` 和 `content` 两个参数。
-- `GET`：使用同一个参数配置追加到 URL query；参数可写 JSON 对象，也可写 `title={{emoji}} {{event}}&content={{notification}}` 这种 QueryString。
+- `GET`：使用同一个参数配置追加到 URL query；参数可写 JSON 对象，也可写 `title={{event}}&content={{notification}}` 这种 QueryString。
 - 请求头支持 JSON 对象或 `Header: value` 多行文本。
 - 发送测试通知会按当前通知模板渲染后发送，适合保存前验证平台格式。
 
@@ -421,7 +421,7 @@ smtp://<用户名>:<密码>@<host>:<port>?from=<发件人>&to=<收件人1,收件
 
 ```json
 {
-  "title": "{{emoji}} {{event}}",
+  "title": "{{event}}",
   "content": "{{notification}}"
 }
 ```
@@ -429,7 +429,7 @@ smtp://<用户名>:<密码>@<host>:<port>?from=<发件人>&to=<收件人1,收件
 默认通知模板：
 
 ```text
-{{emoji}}【CF Server Monitor】{{event}}
+【CF Server Monitor】{{event}}
 
 {{message}}
 
@@ -440,14 +440,14 @@ smtp://<用户名>:<密码>@<host>:<port>?from=<发件人>&to=<收件人1,收件
 
 | 变量 | 说明 |
 | --- | --- |
-| `{{emoji}}` | 事件图标：恢复/测试为 `✅`，离线/告警为 `❌`，到期/混合状态为 `⚠️` |
+| `{{emoji}}` | 兼容保留变量，默认为空字符串 |
 | `{{event}}` | 事件名称，例如“节点离线告警”“资源负载恢复” |
 | `{{client}}` / `{{clients}}` | 本次通知涉及的服务器名称，多个服务器用逗号连接 |
 | `{{count}}` | 本次通知涉及的服务器数量；默认模板不显示，但可自定义加入 |
 | `{{message}}` | 通知详情列表 |
 | `{{time}}` | 按通知时区格式化的发送时间 |
 | `{{notification}}` | 应用通知模板后的完整内容，通常用于 Webhook 的 `content` |
-| `{{title}}` | 固定标题 `💌 Cloudflare Server Monitor` |
+| `{{title}}` | 固定标题 `Cloudflare Server Monitor` |
 
 支持的告警类型：
 

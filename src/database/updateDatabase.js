@@ -34,7 +34,7 @@ export async function updateDatabase(db) {
     // 删除弃用的 notification_deliveries 表
     await db.prepare(`DROP TABLE IF EXISTS notification_deliveries`).run();
     
-    debug('✅ 数据库更新完成');
+    debug('数据库更新完成');
     
     return {
       success: true,
@@ -42,7 +42,7 @@ export async function updateDatabase(db) {
       results
     };
   } catch (e) {
-    debug('❌ 数据库更新失败:', e);
+    debug('数据库更新失败:', e);
     return {
       success: false,
       message: 'databaseUpgradeFailed',
@@ -141,7 +141,7 @@ async function cleanupServerExtraColumns(db) {
     
     for (const col of colsToDrop) {
       await db.prepare(`ALTER TABLE servers DROP COLUMN ${col}`).run();
-      debug(`✅ 已删除 servers 表的 ${col} 字段`);
+      debug(`已删除 servers 表的 ${col} 字段`);
     }
     
     return { success: true, cleaned: colsToDrop.length, message: `已删除 ${colsToDrop.join(', ')} 字段` };
@@ -193,7 +193,7 @@ async function dropMetricsAggregatedTable(db) {
     }
     
     await db.prepare(`DROP TABLE metrics_aggregated`).run();
-    debug('✅ 已删除 metrics_aggregated 表');
+    debug('已删除 metrics_aggregated 表');
     return { success: true, dropped: 1, message: '已删除 metrics_aggregated 表' };
   } catch (e) {
     debug('删除 metrics_aggregated 表失败:', e);

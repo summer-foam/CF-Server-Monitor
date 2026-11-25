@@ -751,7 +751,7 @@ async function handleSendTestNotificationAction({ data }) {
       expire_notification_time: normalizeExpireNotificationTime(expire_notification_time)
     }, messages.testMessage, {
       event: messages.events.test,
-      emoji: '✅',
+      emoji: '',
       clients: ['CF Server Monitor'],
       count: 1,
       message: messages.testMessage

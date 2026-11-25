@@ -414,7 +414,7 @@ Notes:
 Custom Webhook supports `GET` and `POST`:
 
 - `POST`: supports `JSON`, `x-www-form-urlencoded`, or `Text`. The default JSON body contains only `title` and `content`.
-- `GET`: uses the same parameter editor and appends values to the URL query. Parameters may be written as a JSON object or as QueryString, for example `title={{emoji}} {{event}}&content={{notification}}`.
+- `GET`: uses the same parameter editor and appends values to the URL query. Parameters may be written as a JSON object or as QueryString, for example `title={{event}}&content={{notification}}`.
 - Headers may be written as a JSON object or as multiline `Header: value` text.
 - Test notification uses the current notification template before sending, so it can validate the final platform payload before saving.
 
@@ -422,7 +422,7 @@ Default Webhook parameters:
 
 ```json
 {
-  "title": "{{emoji}} {{event}}",
+  "title": "{{event}}",
   "content": "{{notification}}"
 }
 ```
@@ -430,7 +430,7 @@ Default Webhook parameters:
 Default notification template:
 
 ```text
-{{emoji}}【CF Server Monitor】{{event}}
+【CF Server Monitor】{{event}}
 
 {{message}}
 
@@ -441,14 +441,14 @@ Available template variables:
 
 | Variable | Description |
 | --- | --- |
-| `{{emoji}}` | Event icon: recovery/test uses `✅`, offline/alert uses `❌`, expiration/mixed status uses `⚠️` |
+| `{{emoji}}` | Reserved compatibility variable; empty string by default |
 | `{{event}}` | Event name, such as `Offline Alert` or `Resource Recovery` |
 | `{{client}}` / `{{clients}}` | Server names in this notification, joined by comma for multiple servers |
 | `{{count}}` | Number of affected servers; not shown by the default template, but available for custom templates |
 | `{{message}}` | Detailed notification list |
 | `{{time}}` | Send time formatted in the notification timezone |
 | `{{notification}}` | Full content after applying the notification template, usually used as Webhook `content` |
-| `{{title}}` | Fixed title `💌 Cloudflare Server Monitor` |
+| `{{title}}` | Fixed title `Cloudflare Server Monitor` |
 
 Supported alert types:
 

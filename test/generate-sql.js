@@ -374,8 +374,8 @@ INSERT INTO metrics_history (
 const outputPath = path.join(__dirname, 'mock-data.sql');
 fs.writeFileSync(outputPath, sql);
 
-console.log('✅ SQL 文件生成成功:', outputPath);
-console.log('\n📝 使用说明:');
+console.log('SQL 文件生成成功:', outputPath);
+console.log('\n使用说明:');
 console.log('  1. 确保你有 wrangler.toml 配置好 D1 数据库');
 console.log('  2. 创建本地 D1 数据库: wrangler d1 create server-monitor-db');
 console.log('  3. 初始化数据库结构（如果还没）: 访问一次 http://localhost:8787');

@@ -65,10 +65,10 @@ test('resource alert payloads render connection counts as integers', () => {
 test('resource alert payloads are rendered in Spanish', () => {
   const [alert, recovered] = buildResourceAlertNotificationPayloads(netInAlert, netInAlert, { notification_language: 'es' });
   assert.equal(alert.context.event, 'Alerta de carga de recursos');
-  assert.equal(alert.context.emoji, '❌');
+  assert.equal(alert.context.emoji, '');
   assert.equal(alert.msg, 'web-1  Velocidad de descarga 40.0 Mbps');
   assert.equal(recovered.context.event, 'Carga de recursos normalizada');
-  assert.equal(recovered.context.emoji, '✅');
+  assert.equal(recovered.context.emoji, '');
 });
 
 test('monthly traffic alert sends a Spanish Telegram message', async () => {

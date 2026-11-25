@@ -120,10 +120,10 @@ export async function initDatabase(db) {
     // 确保 metrics_history 表存在（主键 id 已编码分区与时间，无需二级索引）
     await db.prepare(createHistoryTableSql('metrics_history')).run();
 
-    debug('✅ 数据库初始化完成');
+    debug('数据库初始化完成');
     dbInitialized = true;
   } catch (e) {
-    console.error('❌ 数据库初始化失败:', e);
+    console.error('数据库初始化失败:', e);
   }
 }
 
@@ -132,10 +132,10 @@ export async function clearHistory(db) {
   
   try {
     await db.prepare(`DROP TABLE IF EXISTS metrics_history`).run();
-    debug('✅ 已删除 metrics_history 表');
+    debug('已删除 metrics_history 表');
 
     await db.prepare(`DROP TABLE IF EXISTS metrics_history_old`).run();
-    debug('✅ 已删除 metrics_history_old 表');
+    debug('已删除 metrics_history_old 表');
     
     dbInitialized = false;
     
@@ -144,14 +144,14 @@ export async function clearHistory(db) {
     await clearAllCaches(db);
     clearDashboardLatencyHistoryCache();
     
-    debug('✅ 数据库重建完成');
+    debug('数据库重建完成');
     
     return {
       success: true,
       message: 'databaseRebuiltSuccess'
     };
   } catch (e) {
-    console.error('❌ 数据库清理失败:', e);
+    console.error('数据库清理失败:', e);
     return {
       success: false,
       message: 'databaseRebuiltFailed',

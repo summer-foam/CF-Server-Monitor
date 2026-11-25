@@ -64,9 +64,10 @@ export const RESOURCE_ALERT_WINDOW_MAX = 10;
 export const RESOURCE_ALERT_MODE_CONTINUOUS = 'continuous';
 export const RESOURCE_ALERT_MODE_AVERAGE = 'average';
 export const RESOURCE_ALERT_RULES_MAX = 20;
-export const DEFAULT_NOTIFICATION_TEMPLATE = '{{emoji}}【CF Server Monitor】{{event}}\n\n{{message}}\n\n{{time}}';
-export const DEFAULT_NOTIFICATION_WEBHOOK_BODY = '{\n  "title": "{{emoji}} {{event}}",\n  "content": "{{notification}}"\n}';
+export const DEFAULT_NOTIFICATION_TEMPLATE = '【CF Server Monitor】{{event}}\n\n{{message}}\n\n{{time}}';
+export const DEFAULT_NOTIFICATION_WEBHOOK_BODY = '{\n  "title": "{{event}}",\n  "content": "{{notification}}"\n}';
 const LEGACY_DEFAULT_NOTIFICATION_TEMPLATES = [
+  '{{emoji}}【CF Server Monitor】{{event}}\n\n{{message}}\n\n{{time}}',
   '{{emoji}}【CF Server Monitor】{{event}}\n\n{{message}}\n\n时间: {{time}}',
   '{{emoji}}【CF Server Monitor】{{event}}\n服务器: {{client}}\n详情:\n{{message}}\n时间: {{time}}',
   '事件: {{event}}\n服务名: {{client}}\n消息: {{message}}\n时间: {{time}}',
@@ -74,9 +75,9 @@ const LEGACY_DEFAULT_NOTIFICATION_TEMPLATES = [
   '{{emoji}}【CF Server Monitor】{{event}}\n服务器: {{client}}\n数量: {{count}}\n详情:\n{{message}}\n时间: {{time}}'
 ];
 const LEGACY_DEFAULT_NOTIFICATION_WEBHOOK_BODIES = [
+  '{\n  "title": "{{emoji}} {{event}}",\n  "content": "{{notification}}"\n}',
   '{\n  "event": "{{event}}",\n  "client": "{{client}}",\n  "message": "{{message}}",\n  "time": "{{time}}"\n}',
-  '{\n  "title": "{{title}}",\n  "event": "{{event}}",\n  "client": "{{client}}",\n  "clients": "{{clients}}",\n  "count": "{{count}}",\n  "message": "{{message}}",\n  "notification": "{{notification}}",\n  "time": "{{time}}"\n}',
-  '{\n  "title": "{{event}}",\n  "content": "{{notification}}"\n}'
+  '{\n  "title": "{{title}}",\n  "event": "{{event}}",\n  "client": "{{client}}",\n  "clients": "{{clients}}",\n  "count": "{{count}}",\n  "message": "{{message}}",\n  "notification": "{{notification}}",\n  "time": "{{time}}"\n}'
 ];
 export const NOTIFICATION_WEBHOOK_METHODS = ['GET', 'POST'];
 export const NOTIFICATION_WEBHOOK_FORMATS = ['json', 'form', 'text'];
