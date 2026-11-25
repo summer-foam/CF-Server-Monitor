@@ -4,7 +4,7 @@
       <div class="alert-line">
         <span>{{ trans.installCommand }}</span>
         <HelpTooltip>
-          <span>{{ trans.clickToCopy }} <strong>📋</strong> {{ trans.installCommand }}</span>
+          <span>{{ trans.clickToCopy }} <Copy :size="13" class="inline-icon" aria-hidden="true" /> {{ trans.installCommand }}</span>
         </HelpTooltip>
       </div>
     </div>
@@ -23,17 +23,21 @@
           class="toolbar-select toolbar-custom-input"
           :placeholder="trans.default || 'Default'"
         >
-        <button v-if="newServerGroup" @click="newServerGroup = ''" class="toolbar-select-clear" aria-label="Clear">✕</button>
+        <button v-if="newServerGroup || showCustomServerGroup" type="button" @click="clearServerGroup" class="toolbar-select-clear" aria-label="Clear"><X :size="13" aria-hidden="true" /></button>
       </div>
-      <button @click="$emit('add-server')" class="btn btn-primary">+ {{ trans.addServer }}</button>
-      <button @click="$emit('auto-discovery-cmd')" class="btn">🤖 {{ trans.autoAdd }}</button>
+      <button @click="$emit('add-server')" class="btn btn-primary"><Plus :size="14" aria-hidden="true" /> {{ trans.addServer }}</button>
+      <button @click="$emit('auto-discovery-cmd')" class="btn"><Bot :size="14" aria-hidden="true" /> {{ trans.autoAdd }}</button>
     </div>
 
     <div class="batch-actions">
-      <button @click="$emit('batch-edit')" class="btn btn-blue" :disabled="selectedServers.length === 0">✏️ {{ trans.batchEdit }}</button>
-      <button @click="$emit('batch-delete')" class="btn btn-red">🗑 {{ trans.batchDelete }}</button>
-      <button @click="$emit('toggle-select-all')" class="btn">☐ {{ trans.toggleAll }}</button>
-      <button @click="$emit('refresh-cache')" class="btn" :disabled="cacheRefreshing">{{ cacheRefreshing ? '⏳' : '🔄' }} {{ trans.refreshCache }}</button>
+      <button @click="$emit('batch-edit')" class="btn btn-blue" :disabled="selectedServers.length === 0"><Pencil :size="14" aria-hidden="true" /> {{ trans.batchEdit }}</button>
+      <button @click="$emit('batch-delete')" class="btn btn-red" :disabled="selectedServers.length === 0"><Trash2 :size="14" aria-hidden="true" /> {{ trans.batchDelete }}</button>
+      <button @click="$emit('toggle-select-all')" class="btn"><SquareCheck :size="14" aria-hidden="true" /> {{ trans.toggleAll }}</button>
+      <button @click="$emit('refresh-cache')" class="btn" :disabled="cacheRefreshing">
+        <Loader2 v-if="cacheRefreshing" :size="14" class="lucide-spin" aria-hidden="true" />
+        <RefreshCw v-else :size="14" aria-hidden="true" />
+        {{ trans.refreshCache }}
+      </button>
     </div>
 
     <div class="table-wrapper">
@@ -43,7 +47,7 @@
             <th class="table-center-cell col-width-35">
               <HelpTooltip :text="trans.dragSort" />
             </th>
-            <th class="col-width-30"><input type="checkbox" id="select-all" @change="$emit('select-all', $event)" class="checkbox-accent-green"></th>
+            <th class="col-width-30"><input type="checkbox" id="select-all" :checked="allServersSelected" :indeterminate.prop="someServersSelected" :disabled="servers.length === 0" @change="$emit('select-all', $event)" class="checkbox-accent-green"></th>
             <th>{{ trans.hostname.toUpperCase() }}</th>
             <th>IP</th>
             <th>{{ trans.group.toUpperCase() }}</th>
@@ -60,7 +64,7 @@
         </thead>
         <tbody>
           <tr v-if="servers.length === 0">
-            <td colspan="14" class="empty-state"><span class="empty-icon">📦</span> {{ trans.noServers }}</td>
+            <td colspan="14" class="empty-state"><span class="empty-icon"><Package :size="40" aria-hidden="true" /></span> {{ trans.noServers }}</td>
           </tr>
           <tr
             v-for="server in servers"
@@ -76,7 +80,7 @@
               @pointermove="handlePointerMove"
               @pointerup="handlePointerUp"
               @pointercancel="handlePointerCancel"
-            >⋮⋮</td>
+            ><GripVertical :size="14" aria-hidden="true" /></td>
             <td class="table-center-cell"><input type="checkbox" class="server-checkbox" :value="server.id" :checked="selectedServers.includes(server.id)" @change="$emit('toggle-server', server.id)"></td>
             <td>
               <div class="server-info">
@@ -85,7 +89,7 @@
                   <OsIcon :os="server.os" />
                 </span>
                 <span v-else class="country-os-icons">
-                  <span class="flag-fallback">🏳️</span>
+                  <span class="flag-fallback"><Flag :size="14" aria-hidden="true" /></span>
                   <OsIcon :os="server.os" />
                 </span>
                 <a
@@ -158,9 +162,12 @@
             <td>
               <div class="action-group">
                 <div class="action-btns">
-                  <button @click="$emit('copy-cmd', server.id)" class="btn btn-icon btn-green" :aria-label="trans.copy">{{ copiedServerId === server.id ? '✅' : '📋' }}</button>
-                  <button @click="$emit('edit', server)" class="btn btn-icon btn-blue" :aria-label="trans.edit">✏️</button>
-                  <button @click="$emit('delete', server.id)" class="btn btn-icon btn-red" :aria-label="trans.delete">🗑️</button>
+                  <button @click="$emit('copy-cmd', server.id)" class="btn btn-icon btn-green" :aria-label="trans.copy">
+                    <Check v-if="copiedServerId === server.id" :size="14" aria-hidden="true" />
+                    <Copy v-else :size="14" aria-hidden="true" />
+                  </button>
+                  <button @click="$emit('edit', server)" class="btn btn-icon btn-blue" :aria-label="trans.edit"><Pencil :size="14" aria-hidden="true" /></button>
+                  <button @click="$emit('delete', server.id)" class="btn btn-icon btn-red" :aria-label="trans.delete"><Trash2 :size="14" aria-hidden="true" /></button>
                 </div>
               </div>
             </td>
@@ -173,6 +180,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { Bot, Check, Copy, Flag, GripVertical, Loader2, Package, Pencil, Plus, RefreshCw, SquareCheck, Trash2, X } from 'lucide-vue-next'
 import { getFlagRegionCode, formatBytes } from '../../../utils/api'
 import { getPublicAssetUrl } from '../../../utils/config'
 import { currentLang } from '../../../utils/i18n'
@@ -245,13 +253,22 @@ const selectedServerGroup = computed({
 })
 
 const showCustomServerGroup = computed(() => selectedServerGroup.value === CUSTOM_SERVER_GROUP_VALUE)
+const allServersSelected = computed(() => (
+  props.servers.length > 0 && props.servers.every(server => props.selectedServers.includes(server.id))
+))
+const someServersSelected = computed(() => (
+  props.selectedServers.length > 0 && !allServersSelected.value
+))
+
+const clearServerGroup = () => {
+  manualCustomServerGroup.value = false
+  newServerGroup.value = ''
+}
 
 watch(
-  newServerGroup,
-  (value) => {
-    if (!String(value || '').trim() || isKnownServerGroup(value)) {
-      manualCustomServerGroup.value = false
-    }
+  () => props.selectedApiIndex,
+  () => {
+    manualCustomServerGroup.value = false
   }
 )
 

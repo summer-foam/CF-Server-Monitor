@@ -1,9 +1,15 @@
 <template>
-  <div class="modal-overlay" :class="{ active: show }">
+  <div
+    v-if="show"
+    class="modal-overlay active"
+    role="dialog"
+    aria-modal="true"
+    @click.self="!saving && $emit('close')"
+  >
     <div class="modal-dialog batch-edit-modal">
       <div class="modal-header">
         <div class="modal-title">{{ trans.batchEdit }} [{{ selectedCount }}]</div>
-        <button class="modal-close" @click="$emit('close')">×</button>
+        <button type="button" class="modal-close" :aria-label="trans.close" :disabled="saving" @click="$emit('close')"><X :size="18" aria-hidden="true" /></button>
       </div>
 
       <div class="batch-edit-grid">
@@ -160,8 +166,8 @@
       </div>
 
       <div class="modal-footer flex-justify-between">
-        <button @click="$emit('save')" class="btn btn-primary" :disabled="!hasEnabledFields">{{ saving ? trans.saving : trans.save }}</button>
-        <button @click="$emit('close')" class="btn">{{ trans.cancel }}</button>
+        <button @click="$emit('save')" class="btn btn-primary" :disabled="!hasEnabledFields || saving">{{ saving ? trans.saving : trans.save }}</button>
+        <button @click="$emit('close')" class="btn" :disabled="saving">{{ trans.cancel }}</button>
       </div>
     </div>
   </div>
@@ -169,6 +175,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { X } from 'lucide-vue-next'
 import BatchEditField from './BatchEditField.vue'
 import { currentLang } from '../../../utils/i18n.js'
 import { BILLING_CYCLES, CURRENCY_OPTIONS, getLocalizedOptionField } from '../../../utils/server.js'

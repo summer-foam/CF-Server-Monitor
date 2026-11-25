@@ -20,7 +20,11 @@
         <input id="passkey-password" v-model="password" class="form-input" type="password" autocomplete="current-password" :disabled="busy" :placeholder="trans.passkeyPassword">
       </div>
       <p class="passkey-hint">{{ trans.passkeyPasswordHint }}</p>
-      <button type="button" class="btn btn-primary" :disabled="busy || !password" @click="add">{{ busy ? '⏳' : '+' }} {{ trans.passkeyAdd }}</button>
+      <button type="button" class="btn btn-primary" :disabled="busy || !password" @click="add">
+        <Loader2 v-if="busy" :size="14" class="lucide-spin" aria-hidden="true" />
+        <Plus v-else :size="14" aria-hidden="true" />
+        {{ trans.passkeyAdd }}
+      </button>
       <p v-if="message" role="status" class="passkey-message">{{ message }}</p>
     </template>
   </div>
@@ -28,6 +32,7 @@
 
 <script setup>
 import { onScopeDispose, ref, watch } from 'vue'
+import { Loader2, Plus } from 'lucide-vue-next'
 import { startRegistration, WebAuthnAbortService } from '@simplewebauthn/browser'
 import { http } from '../../../utils/http.js'
 import { passkeyErrorKey } from '../../../utils/passkeyErrors.js'

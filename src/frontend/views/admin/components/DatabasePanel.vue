@@ -5,12 +5,12 @@
 
       <div class="settings-grid">
         <div class="form-group">
-          <button @click="$emit('open-db-modal', 'upgrade')" class="btn btn-primary btn-lg" :disabled="dbLoading">⬆️ {{ trans.upgradeDatabase }}</button>
+          <button @click="$emit('open-db-modal', 'upgrade')" class="btn btn-primary btn-lg" :disabled="dbLoading"><CircleArrowUp :size="16" aria-hidden="true" /> {{ trans.upgradeDatabase }}</button>
           <p class="text-muted text-sm mt-2">{{ trans.upgradeDesc }}</p>
         </div>
 
         <div class="form-group">
-          <button @click="$emit('open-db-modal', 'clearHistory')" class="btn btn-red btn-lg" :disabled="dbLoading">🗑️ {{ trans.clearHistory }}</button>
+          <button @click="$emit('open-db-modal', 'clearHistory')" class="btn btn-red btn-lg" :disabled="dbLoading"><Trash2 :size="16" aria-hidden="true" /> {{ trans.clearHistory }}</button>
           <p class="text-muted text-sm mt-2">{{ trans.clearHistoryDesc }}</p>
         </div>
       </div>
@@ -22,10 +22,14 @@
       <div class="settings-grid">
         <div class="form-group">
           <button @click="handleExport" class="btn btn-primary btn-lg" :disabled="dbLoading || exporting">
-            {{ exporting ? trans.exporting : '📤 ' + trans.exportServers }}
+            <Loader2 v-if="exporting" :size="16" class="lucide-spin" aria-hidden="true" />
+            <Upload v-else :size="16" aria-hidden="true" />
+            {{ exporting ? trans.exporting : trans.exportServers }}
           </button>
-          <p v-if="exportNotice" class="text-sm mt-2" :style="{ color: exportNotice.success ? 'var(--accent-green)' : 'var(--accent-red)' }">
-            {{ exportNotice.success ? '✅' : '❌' }} {{ exportNotice.text }}
+          <p v-if="exportNotice" class="text-sm mt-2 flex-center-gap-sm" :style="{ color: exportNotice.success ? 'var(--accent-green)' : 'var(--accent-red)' }">
+            <CheckCircle2 v-if="exportNotice.success" :size="15" aria-hidden="true" />
+            <XCircle v-else :size="15" aria-hidden="true" />
+            <span>{{ exportNotice.text }}</span>
           </p>
         </div>
 
@@ -38,7 +42,9 @@
             @change="handleFileSelect"
           />
           <button @click="$refs.fileInput.click()" class="btn btn-lg" :disabled="dbLoading || importing">
-            {{ importing ? trans.importing : '📥 ' + trans.importServers }}
+            <Loader2 v-if="importing" :size="16" class="lucide-spin" aria-hidden="true" />
+            <Download v-else :size="16" aria-hidden="true" />
+            {{ importing ? trans.importing : trans.importServers }}
           </button>
         </div>
       </div>
@@ -48,8 +54,10 @@
       <div v-if="importResult" class="mt-3">
         <div :class="importResult.success ? 'warning-box' : 'danger-box'" class="mb-2">
           <div class="flex-center-gap-sm">
-            <span :style="{ color: importResult.success ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: '600' }">
-              {{ importResult.success ? '✅' : '❌' }} {{ trans.importResult }}
+            <span class="flex-center-gap-sm" :style="{ color: importResult.success ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: '600' }">
+              <CheckCircle2 v-if="importResult.success" :size="16" aria-hidden="true" />
+              <XCircle v-else :size="16" aria-hidden="true" />
+              {{ trans.importResult }}
             </span>
           </div>
           <div class="mt-2 text-sm">
@@ -66,7 +74,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { CheckCircle2, CircleArrowUp, Download, Loader2, Trash2, Upload, XCircle } from 'lucide-vue-next'
 import { adminApi } from '../../../utils/api'
 import { parseServerBackup } from '../../../utils/backup'
 
@@ -77,7 +86,7 @@ const props = defineProps({
   selectedApiIndex: { type: Number, default: 0 }
 })
 
-defineEmits(['open-db-modal'])
+const emit = defineEmits(['open-db-modal', 'imported'])
 
 const fileInput = ref(null)
 const exporting = ref(false)
@@ -154,7 +163,10 @@ const handleFileSelect = async (event) => {
         skippedIds: result.data.skippedIds || []
       }
       if (result.data.imported > 0 || result.data.settings?.imported) {
-        window.location.reload()
+        emit('imported', {
+          serversImported: (result.data.imported || 0) > 0,
+          settingsImported: Boolean(result.data.settings?.imported)
+        })
       }
     } else {
       importResult.value = emptyResult()
@@ -169,4 +181,9 @@ const handleFileSelect = async (event) => {
     }
   }
 }
+
+watch(() => props.selectedApiIndex, () => {
+  importResult.value = null
+  exportNotice.value = null
+})
 </script>

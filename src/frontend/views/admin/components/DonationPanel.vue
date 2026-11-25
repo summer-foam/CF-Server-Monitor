@@ -7,7 +7,7 @@
         <div class="donation-qr-card">
           <img
             class="donation-qr"
-            src="/donate/wechat-reward.jpg"
+            :src="wechatRewardQr"
             :alt="trans.donationQrAlt"
           >
           <div class="donation-qr-caption">{{ trans.donationWechat }}</div>
@@ -15,7 +15,7 @@
 
         <div class="donation-copy">
           <p>{{ trans.donationDesc }}</p>
-          <p class="donation-token">🪙 {{ trans.donationToken }}</p>
+          <p class="donation-token"><Coins :size="15" aria-hidden="true" /> {{ trans.donationToken }}</p>
           <p class="text-secondary text-sm">{{ trans.donationThanks }}</p>
         </div>
       </div>
@@ -24,6 +24,8 @@
 </template>
 
 <script setup>
+import { Coins } from 'lucide-vue-next'
+import wechatRewardQr from '../../../../../donate/wechat-reward.jpg'
 defineProps({
   trans: {
     type: Object,

@@ -1,15 +1,22 @@
 <template>
-  <div id="deleteModal" class="modal-overlay" :class="{ active: show }">
+  <div
+    v-if="show"
+    id="deleteModal"
+    class="modal-overlay active"
+    role="dialog"
+    aria-modal="true"
+    @click.self="!deleting && $emit('close')"
+  >
     <div class="modal-dialog">
       <div class="modal-header">
         <div class="modal-title">{{ currentServerName }}</div>
-        <button class="modal-close" @click="$emit('close')">✕</button>
+        <button type="button" class="modal-close" :aria-label="trans.close" :disabled="deleting" @click="$emit('close')"><X :size="18" aria-hidden="true" /></button>
       </div>
       <input type="hidden" :value="deleteServerId">
 
       <div class="mb-4">
         <div class="flex-center-gap-sm mb-3">
-          <span class="danger-icon text-xl">⚠️</span>
+          <TriangleAlert :size="20" class="danger-icon" aria-hidden="true" />
           <span class="danger-label">{{ trans.dangerWarning }}</span>
         </div>
         <p class="text-secondary text-sm line-height-1-6">
@@ -113,12 +120,15 @@
           rows="8"
         />
         <input v-else type="text" readonly :value="uninstallCommand" class="cmd-input flex-1">
-        <button @click="$emit('copy-uninstall')" class="btn btn-icon btn-green ml-2" :aria-label="trans.copy">{{ uninstallCopied ? '✅' : '📋' }}</button>
+        <button @click="$emit('copy-uninstall')" class="btn btn-icon btn-green ml-2" :aria-label="trans.copy">
+          <Check v-if="uninstallCopied" :size="15" aria-hidden="true" />
+          <Copy v-else :size="15" aria-hidden="true" />
+        </button>
       </div>
 
       <div class="modal-footer flex-justify-between">
-        <button @click="$emit('confirm-delete')" class="btn btn-red">{{ trans.confirmDelete }}</button>
-        <button @click="$emit('close')" class="btn">{{ trans.cancelAction }}</button>
+        <button @click="$emit('confirm-delete')" class="btn btn-red" :disabled="deleting">{{ trans.confirmDelete }}</button>
+        <button @click="$emit('close')" class="btn" :disabled="deleting">{{ trans.cancelAction }}</button>
       </div>
     </div>
   </div>
@@ -126,12 +136,14 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { Check, Copy, TriangleAlert, X } from 'lucide-vue-next'
 import HelpTooltip from '../../../components/HelpTooltip.vue'
 import { hasInvalidInstanceChars } from '../../../utils/instance-command.js'
 
 const props = defineProps({
   trans: { type: Object, required: true },
   show: { type: Boolean, default: false },
+  deleting: { type: Boolean, default: false },
   deleteServerId: { type: [String, Number], default: '' },
   currentServerName: { type: String, default: '' },
   deleteTargetOs: { type: String, default: 'linux' },
@@ -157,16 +169,16 @@ const emit = defineEmits([
 ])
 
 const CUSTOM_GH_PROXY_VALUE = '__custom__'
-const ghProxyOptions = [
+const ghProxyOptions = computed(() => [
   { value: '', label: props.trans.ghProxyPlaceholder || 'Direct' },
   { value: 'https://ghfast.top/', label: 'https://ghfast.top/' },
   { value: 'https://ghproxy.net/', label: 'https://ghproxy.net/' },
   { value: 'https://gh.llkk.cc/', label: 'https://gh.llkk.cc/' },
   { value: 'https://gh-proxy.com/', label: 'https://gh-proxy.com/' }
-]
+])
 
 const manualCustomGhProxy = ref(false)
-const isKnownGhProxy = (value) => ghProxyOptions.some(option => option.value === String(value || '').trim())
+const isKnownGhProxy = (value) => ghProxyOptions.value.some(option => option.value === String(value || '').trim())
 
 const selectedGhProxy = computed({
   get: () => {

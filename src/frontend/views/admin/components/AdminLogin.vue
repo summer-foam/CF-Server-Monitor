@@ -2,7 +2,7 @@
   <div id="login-overlay" class="login-overlay">
     <div class="login-container">
       <div class="login-header">
-        <div class="login-icon">🔐</div>
+        <div class="login-icon"></div>
       </div>
       <form @submit.prevent="$emit('login')">
         <div v-if="isMultipleMode" class="login-form-group">
@@ -26,7 +26,8 @@
           <div class="password-input-wrapper">
             <input :type="passwordVisible.login ? 'text' : 'password'" name="password" autocomplete="current-password" v-model="loginForm.password" required class="login-input">
             <button type="button" class="password-toggle" @click="$emit('toggle-password', 'login')">
-              {{ passwordVisible.login ? '🙈' : '👁️' }}
+              <EyeOff v-if="passwordVisible.login" :size="16" aria-hidden="true" />
+              <Eye v-else :size="16" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -34,7 +35,10 @@
           <div id="admin-turnstile-container"></div>
         </div>
         <div v-if="loginError" id="login-error" class="login-error">{{ loginError }}</div>
-        <button type="submit" class="login-btn" :disabled="loginLoading">{{ loginLoading ? '⏳' : trans.login }}</button>
+        <button type="submit" class="login-btn" :disabled="loginLoading">
+          <Loader2 v-if="loginLoading" :size="16" class="lucide-spin" aria-hidden="true" />
+          <span v-else>{{ trans.login }}</span>
+        </button>
         <button type="button" class="login-btn passkey-login-btn" :aria-busy="!!passkeyStatus" :disabled="loginLoading || !passkeyAvailable" @click="$emit('passkey-login')">{{ passkeyStatus === 'preparing' ? trans.passkeyPreparing : passkeyStatus ? trans.passkeyVerifying : trans.passkeyLogin }}</button>
         <p v-if="passkeyStatus === 'browser'" class="passkey-login-hint" role="status" aria-live="polite">{{ trans.passkeyBrowserPrompt }}</p>
       </form>
@@ -44,6 +48,7 @@
 </template>
 
 <script setup>
+import { Eye, EyeOff, Loader2 } from 'lucide-vue-next'
 import Footer from '../../../components/Footer.vue'
 
 defineProps({

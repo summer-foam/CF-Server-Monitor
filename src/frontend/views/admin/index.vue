@@ -37,7 +37,7 @@
             <span class="prompt">$</span> {{ trans.sudoStatus }}
           </div>
           <div class="header-actions">
-            <button @click="refreshServers" class="btn" :disabled="adminSiteLoading">↻ {{ trans.refresh }}</button>
+            <button @click="refreshServers" class="btn" :disabled="adminSiteLoading"><RefreshCw :size="14" aria-hidden="true" /> {{ trans.refresh }}</button>
             <select
               v-if="isMultipleMode"
               v-model.number="selectedApiIndex"
@@ -54,7 +54,7 @@
               </option>
             </select>
             <HelpTooltip v-if="isMultipleMode" :text="trans.apiEndpoint" />
-            <button @click="logout" class="btn btn-red">🚪 {{ trans.logout }}</button>
+            <button @click="logout" class="btn btn-red"><LogOut :size="14" aria-hidden="true" /> {{ trans.logout }}</button>
           </div>
         </div>
 
@@ -170,6 +170,7 @@
           :db-loading="dbLoading"
           :selected-api-index="selectedApiIndex"
           @open-db-modal="openDbModal"
+          @imported="handleDatabaseImported"
         />
 
         <ThemeStorePanel
@@ -195,6 +196,7 @@
         v-model:edit-form="editForm"
         :current-server-name="currentServerName"
         :settings="settings"
+        :saving="editingServer"
         @save="saveEdit"
         @close="closeEditModal"
         @toggle-auto-update="handleAutoUpdateToggle"
@@ -213,16 +215,23 @@
         @close="closeBatchEditModal"
       />
 
-      <div v-if="showAutoUpdateWarning" id="autoUpdateWarningModal" class="modal-overlay auto-update-warning-modal active">
+      <div
+        v-if="showAutoUpdateWarning"
+        id="autoUpdateWarningModal"
+        class="modal-overlay auto-update-warning-modal active"
+        role="dialog"
+        aria-modal="true"
+        @click.self="cancelAutoUpdateWarning"
+      >
         <div class="modal-dialog">
           <div class="modal-header">
             <div class="modal-title">{{ trans.autoUpdateRiskTitle }}</div>
-            <button class="modal-close" @click="cancelAutoUpdateWarning">✕</button>
+            <button type="button" class="modal-close" :aria-label="trans.close" @click="cancelAutoUpdateWarning"><X :size="18" aria-hidden="true" /></button>
           </div>
 
           <div class="danger-box mb-4">
             <div class="flex-center-gap-sm mb-2">
-              <span class="danger-icon text-xl">⚠️</span>
+              <TriangleAlert :size="20" class="danger-icon" aria-hidden="true" />
               <span class="danger-label">{{ trans.autoUpdateRiskTitle }}</span>
             </div>
             <p class="text-secondary text-sm line-height-1-6">
@@ -240,6 +249,7 @@
       <DeleteServerModal
         :trans="trans"
         :show="showDeleteModal"
+        :deleting="deletingServer"
         :delete-server-id="deleteServerId"
         :current-server-name="currentServerName"
         :delete-target-os="deleteTargetOs"
@@ -324,16 +334,23 @@
         @update:gh-proxy="autoDiscoveryGhProxy = $event"
       />
 
-      <div id="dbModal" class="modal-overlay" :class="{ active: showDbModal }">
+      <div
+        v-if="showDbModal"
+        id="dbModal"
+        class="modal-overlay active"
+        role="dialog"
+        aria-modal="true"
+        @click.self="closeDbModal"
+      >
         <div class="modal-dialog">
           <div class="modal-header">
             <div class="modal-title">$ {{ dbOperation === 'clearHistory' ? 'CLEAR HISTORY' : 'ALTER DATABASE' }}</div>
-            <button class="modal-close" @click="closeDbModal" :disabled="dbLoading">✕</button>
+            <button type="button" class="modal-close" :aria-label="trans.close" @click="closeDbModal" :disabled="dbLoading"><X :size="18" aria-hidden="true" /></button>
           </div>
 
           <div v-if="dbOperation === 'clearHistory'" class="mb-4">
             <div class="flex-center-gap-sm mb-3">
-              <span class="danger-icon text-xl">⚠️</span>
+              <TriangleAlert :size="20" class="danger-icon" aria-hidden="true" />
               <span class="danger-label">{{ trans.dangerOperation }}</span>
             </div>
             <p class="text-secondary text-sm line-height-1-6">
@@ -343,7 +360,7 @@
 
           <div v-if="dbOperation === 'upgrade'" class="mb-4">
             <div class="flex-center-gap-sm mb-3">
-              <span class="warning-icon text-xl">ℹ️</span>
+              <Info :size="20" class="warning-icon" aria-hidden="true" />
               <span style="color: var(--accent-yellow); font-weight: 600;">{{ trans.upgradeDatabase }}</span>
             </div>
             <p class="text-secondary text-sm line-height-1-6">
@@ -353,8 +370,10 @@
 
           <div v-if="dbResult" :class="dbResult.success ? 'warning-box' : 'danger-box'" class="mb-4">
             <div class="flex-center-gap-sm">
-              <span :style="{ color: dbResult.success ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: '600' }">
-                {{ dbResult.success ? '✅' : '❌' }} {{ getMessage(dbResult.message) || (dbResult.success ? trans.operationSuccess : trans.operationFailed) }}
+              <span class="flex-center-gap-sm" :style="{ color: dbResult.success ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: '600' }">
+                <CheckCircle2 v-if="dbResult.success" :size="16" aria-hidden="true" />
+                <XCircle v-else :size="16" aria-hidden="true" />
+                {{ getMessage(dbResult.message) || (dbResult.success ? trans.operationSuccess : trans.operationFailed) }}
               </span>
             </div>
             <div v-if="dbResult.error" class="text-red mt-2">
@@ -376,11 +395,18 @@
         </div>
       </div>
 
-      <div v-if="d1UsageResult" id="d1UsageModal" class="modal-overlay active">
+      <div
+        v-if="d1UsageResult"
+        id="d1UsageModal"
+        class="modal-overlay active"
+        role="dialog"
+        aria-modal="true"
+        @click.self="d1UsageResult = null"
+      >
         <div class="modal-dialog">
           <div class="modal-header">
             <div class="modal-title">$ D1, Workers & Durable Objects quota --utc</div>
-            <button class="modal-close" @click="d1UsageResult = null">✕</button>
+            <button type="button" class="modal-close" :aria-label="trans.close" @click="d1UsageResult = null"><X :size="18" aria-hidden="true" /></button>
           </div>
 
           <div v-if="d1UsageResult.success" class="mb-4">
@@ -535,16 +561,23 @@
         </div>
       </div>
 
-      <div v-if="validationError" id="validationErrorModal" class="modal-overlay active">
+      <div
+        v-if="validationError"
+        id="validationErrorModal"
+        class="modal-overlay active"
+        role="dialog"
+        aria-modal="true"
+        @click.self="validationError = null"
+      >
         <div class="modal-dialog">
           <div class="modal-header">
             <div class="modal-title">$ {{ trans.validationError }}</div>
-            <button class="modal-close" @click="validationError = null">✕</button>
+            <button type="button" class="modal-close" :aria-label="trans.close" @click="validationError = null"><X :size="18" aria-hidden="true" /></button>
           </div>
 
           <div class="danger-box mb-4">
             <div class="flex-center-gap-sm">
-              <span class="danger-icon text-xl">⚠️</span>
+              <TriangleAlert :size="20" class="danger-icon" aria-hidden="true" />
               <span class="danger-label">{{ validationError }}</span>
             </div>
           </div>
@@ -556,24 +589,32 @@
         </div>
       </div>
 
-      <div v-if="saveResult" class="modal-overlay active">
+      <div
+        v-if="saveResult"
+        class="modal-overlay active"
+        role="dialog"
+        aria-modal="true"
+        @click.self="saveResult = null"
+      >
         <div class="modal-dialog">
           <div class="modal-header">
             <div class="modal-title">$ save --result</div>
-            <button class="modal-close" @click="saveResult = null">✕</button>
+            <button type="button" class="modal-close" :aria-label="trans.close" @click="saveResult = null"><X :size="18" aria-hidden="true" /></button>
           </div>
 
           <div v-if="saveResult.success" class="success-box mb-4">
             <div class="flex-center-gap-sm">
+              <CheckCircle2 :size="16" class="success-icon" aria-hidden="true" />
               <span style="color: var(--accent-green); font-weight: 600;">
-                ✅ {{ saveResult.message || trans.saveSuccess }}
+                {{ saveResult.message || trans.saveSuccess }}
               </span>
             </div>
           </div>
 
           <div v-else class="danger-box mb-4">
             <div class="flex-center-gap-sm">
-              <span class="danger-label">❌ {{ saveResult.error }}</span>
+              <XCircle :size="16" class="danger-icon" aria-hidden="true" />
+              <span class="danger-label">{{ saveResult.error }}</span>
             </div>
           </div>
 
@@ -584,11 +625,17 @@
         </div>
       </div>
 
-      <div v-if="alertMessage" class="modal-overlay active">
+      <div
+        v-if="alertMessage"
+        class="modal-overlay active"
+        role="dialog"
+        aria-modal="true"
+        @click.self="alertMessage = null"
+      >
         <div class="modal-dialog">
           <div class="modal-header">
             <div class="modal-title">$ alert</div>
-            <button class="modal-close" @click="alertMessage = null">✕</button>
+            <button type="button" class="modal-close" :aria-label="trans.close" @click="alertMessage = null"><X :size="18" aria-hidden="true" /></button>
           </div>
 
           <div class="mb-4">
@@ -611,6 +658,7 @@
 import { ref, computed, onMounted, onScopeDispose, watch, nextTick, inject } from 'vue'
 import { startAuthentication, WebAuthnAbortService } from '@simplewebauthn/browser'
 import { useRoute, useRouter } from 'vue-router'
+import { CheckCircle2, Info, LogOut, RefreshCw, TriangleAlert, X, XCircle } from 'lucide-vue-next'
 import TerminalHeader from '../../components/TerminalHeader.vue'
 import Footer from '../../components/Footer.vue'
 import HelpTooltip from '../../components/HelpTooltip.vue'
@@ -1011,8 +1059,8 @@ const settings = ref({
   notification_webhook_method: 'POST',
   notification_webhook_format: 'json',
   notification_webhook_headers: '',
-  notification_webhook_body: '{\n  "title": "{{emoji}} {{event}}",\n  "content": "{{notification}}"\n}',
-  notification_template: '{{emoji}}【CF Server Monitor】{{event}}\n\n{{message}}\n\n{{time}}',
+  notification_webhook_body: '{\n  "title": "{{event}}",\n  "content": "{{notification}}"\n}',
+  notification_template: '【CF Server Monitor】{{event}}\n\n{{message}}\n\n{{time}}',
   turnstile_enabled: false,
   turnstile_login_enabled: false,
   turnstile_site_key: '',
@@ -1188,6 +1236,9 @@ const deleteInstance = ref('')
 const deleteAllInstances = ref(false)
 const uninstallCopied = ref(false)
 const saving = ref(false)
+const addingServer = ref(false)
+const editingServer = ref(false)
+const deletingServer = ref(false)
 
 
 const showDbModal = ref(false)
@@ -1473,14 +1524,24 @@ const handleApiIndexChange = async (newIndex) => {
 const resetAdminContext = () => {
   selectedServers.value = []
   showEditModal.value = false
+  showBatchEditModal.value = false
   showDeleteModal.value = false
   showCopyModal.value = false
+  showAutoDiscoveryModal.value = false
+  showAutoUpdateWarning.value = false
+  autoUpdatePendingEnable.value = false
   showDbModal.value = false
+  d1UsageResult.value = null
+  saveResult.value = null
+  alertMessage.value = null
   validationError.value = null
 }
 
 const switchAdminSite = async () => {
   resetAdminContext()
+  servers.value = []
+  stats.value = { total: '-', online: 0, offline: 0, avg_cpu: 0 }
+  groups.value = ['Default']
   adminSiteLoading.value = true
   try {
     await Promise.all([
@@ -1559,8 +1620,8 @@ const loadSettings = async () => {
         notification_webhook_method: String(settingsData.notification_webhook_method || 'POST').toUpperCase() === 'GET' ? 'GET' : 'POST',
         notification_webhook_format: ['json', 'form', 'text'].includes(String(settingsData.notification_webhook_format || '').toLowerCase()) ? String(settingsData.notification_webhook_format).toLowerCase() : 'json',
         notification_webhook_headers: settingsData.notification_webhook_headers || '',
-        notification_webhook_body: settingsData.notification_webhook_body || '{\n  "title": "{{emoji}} {{event}}",\n  "content": "{{notification}}"\n}',
-        notification_template: settingsData.notification_template || '{{emoji}}【CF Server Monitor】{{event}}\n\n{{message}}\n\n{{time}}',
+        notification_webhook_body: settingsData.notification_webhook_body || '{\n  "title": "{{event}}",\n  "content": "{{notification}}"\n}',
+        notification_template: settingsData.notification_template || '【CF Server Monitor】{{event}}\n\n{{message}}\n\n{{time}}',
         turnstile_enabled: settingsData.turnstile_enabled === 'true',
         turnstile_login_enabled: settingsData.turnstile_login_enabled === 'true',
         turnstile_site_key: settingsData.turnstile_site_key || '',
@@ -1858,12 +1919,14 @@ const refreshServers = async () => {
 }
 
 const addServer = async () => {
+  if (addingServer.value) return
   const name = newServerName.value.trim()
   if (!name) {
     validationError.value = trans.value.enterServerName
     return
   }
 
+  addingServer.value = true
   try {
     const result = await adminApiForSite({ action: 'add', name, server_group: newServerGroup.value })
     if (!result.error) {
@@ -1876,6 +1939,8 @@ const addServer = async () => {
     }
   } catch (e) {
     saveResult.value = { success: false, error: e.message }
+  } finally {
+    addingServer.value = false
   }
 }
 
@@ -2100,6 +2165,7 @@ const openEditModal = (server) => {
 }
 
 const closeEditModal = () => {
+  if (editingServer.value) return
   cancelAutoUpdateWarning()
   showEditModal.value = false
 }
@@ -2188,66 +2254,30 @@ const buildEditPayloadFromForm = (form) => {
 }
 
 const saveEdit = async () => {
+  if (editingServer.value) return
   validationError.value = null
 
-  const pingNodeValidation = getPingNodeValidation(editForm.value)
-  if (!pingNodeValidation.valid) {
-    validationError.value = buildPingNodeError(pingNodeValidation.field)
+  const trimmedName = String(editForm.value.name || '').trim()
+  if (!trimmedName) {
+    validationError.value = trans.value.enterServerName
+    return
+  }
+  editForm.value.name = trimmedName
+
+  const built = buildEditPayloadFromForm(editForm.value)
+  if (built.error) {
+    validationError.value = built.error
     return
   }
 
-  const normalizedBillingCycle = normalizeBillingCycle(editForm.value.billing_cycle)
-  const normalizedAutoRenewal = editForm.value.auto_renewal ? '1' : '0'
-  const normalizedPrice = normalizePrice(editForm.value.price)
-  const normalizedCurrency = normalizeCurrency(editForm.value.currency || detectCurrencySymbol(editForm.value.price) || '¥')
-  const normalizedExpireDate = renewExpireDateIfNeeded(
-    editForm.value.expire_date,
-    normalizedBillingCycle,
-    normalizedAutoRenewal
-  ).expire_date
+  editForm.value.price = built.normalized.price
+  editForm.value.currency = built.normalized.currency
+  editForm.value.billing_cycle = built.normalized.billing_cycle
+  editForm.value.expire_date = built.normalized.expire_date
 
-  editForm.value.price = normalizedPrice
-  editForm.value.currency = normalizedCurrency
-  editForm.value.billing_cycle = normalizedBillingCycle
-  editForm.value.expire_date = normalizedExpireDate
-
-  const data = {
-    action: 'edit',
-    id: editForm.value.id,
-    name: editForm.value.name,
-    server_group: editForm.value.server_group,
-    region: editForm.value.region,
-    tags: editForm.value.tags,
-    note: editForm.value.note,
-    price: normalizedPrice,
-    billing_cycle: normalizedBillingCycle,
-    auto_renewal: normalizedAutoRenewal,
-    currency: normalizedCurrency,
-    expire_date: normalizedExpireDate,
-    traffic_limit: editForm.value.traffic_limit,
-    traffic_calc_type: editForm.value.traffic_calc_type,
-    traffic_alert_percent: normalizeTrafficAlertPercentField(editForm.value.traffic_alert_percent),
-    interface: editForm.value.interface,
-    reset_day: editForm.value.reset_day,
-    collect_interval: editForm.value.collect_interval,
-    report_interval: editForm.value.report_interval,
-    wss_report_interval: editForm.value.wss_report_interval,
-    connection_mode: getEffectiveConnectionMode(editForm.value.connection_mode),
-    ping_mode: editForm.value.ping_mode === 'icmp' ? 'icmp' : 'tcp',
-    custom_ct: pingNodeValidation.values.custom_ct,
-    custom_cu: pingNodeValidation.values.custom_cu,
-    custom_cm: pingNodeValidation.values.custom_cm,
-    custom_bd: pingNodeValidation.values.custom_bd,
-    node_1: pingNodeValidation.values.node_1, node_2: pingNodeValidation.values.node_2, node_3: pingNodeValidation.values.node_3, node_4: pingNodeValidation.values.node_4,
-    rx_correction: editForm.value.rx_correction,
-    tx_correction: editForm.value.tx_correction,
-    auto_update: editForm.value.auto_update ? '1' : '0',
-    is_hidden: editForm.value.is_hidden ? '1' : '0',
-    offline_notify_disabled: editForm.value.offline_notify_disabled ? '1' : '0'
-  }
-
+  editingServer.value = true
   try {
-    const result = await adminApiForSite(data)
+    const result = await adminApiForSite(built.payload)
     if (!result.error) {
       saveResult.value = { success: true, message: getMessage(result.data.message) || trans.value.serverEdited }
       cancelAutoUpdateWarning()
@@ -2258,6 +2288,8 @@ const saveEdit = async () => {
     }
   } catch (e) {
     saveResult.value = { success: false, error: e.message }
+  } finally {
+    editingServer.value = false
   }
 }
 
@@ -2276,21 +2308,27 @@ const openDeleteModal = (id) => {
 }
 
 const closeDeleteModal = () => {
+  if (deletingServer.value) return
   showDeleteModal.value = false
 }
 
 const confirmDelete = async () => {
+  if (deletingServer.value) return
+  deletingServer.value = true
   try {
     const result = await adminApiForSite({ action: 'delete', id: deleteServerId.value })
     if (!result.error) {
       saveResult.value = { success: true, message: getMessage(result.data.message) || trans.value.serverDeleted }
       showDeleteModal.value = false
+      selectedServers.value = selectedServers.value.filter(id => id !== deleteServerId.value)
       loadServers()
     } else {
       saveResult.value = { success: false, error: getMessage(result.error) || 'Fail' }
     }
   } catch (e) {
     saveResult.value = { success: false, error: e.message }
+  } finally {
+    deletingServer.value = false
   }
 }
 
@@ -2368,23 +2406,34 @@ const saveBatchEdit = async () => {
   }
 
   validationError.value = null
+
+  // 先全量校验所有待提交服务器，避免中途校验失败导致部分已写入
+  const payloads = []
+  for (const server of selected) {
+    const form = createEditFormFromServer(server)
+    for (const field of enabledFields) {
+      form[field] = batchEditForm.value[field]
+    }
+    const built = buildEditPayloadFromForm(form)
+    if (built.error) {
+      validationError.value = built.error
+      return
+    }
+    payloads.push({ id: server.id, payload: built.payload })
+  }
+
   batchEditing.value = true
+  let updated = 0
 
   try {
-    let updated = 0
-    for (const server of selected) {
-      const form = createEditFormFromServer(server)
-      for (const field of enabledFields) {
-        form[field] = batchEditForm.value[field]
-      }
-      const built = buildEditPayloadFromForm(form)
-      if (built.error) {
-        validationError.value = built.error
-        return
-      }
-      const result = await adminApiForSite(built.payload)
+    for (const item of payloads) {
+      const result = await adminApiForSite(item.payload)
       if (result.error) {
-        saveResult.value = { success: false, error: getMessage(result.error) || 'Fail' }
+        const reason = getMessage(result.error) || 'Fail'
+        saveResult.value = {
+          success: false,
+          error: updated > 0 ? `${updated}/${payloads.length}: ${reason}` : reason
+        }
         return
       }
       updated += 1
@@ -2396,11 +2445,16 @@ const saveBatchEdit = async () => {
     }
     selectedServers.value = []
     showBatchEditModal.value = false
-    await loadServers()
   } catch (e) {
-    saveResult.value = { success: false, error: e.message }
+    saveResult.value = {
+      success: false,
+      error: updated > 0 ? `${updated}/${payloads.length}: ${e.message}` : e.message
+    }
   } finally {
     batchEditing.value = false
+    if (updated > 0) {
+      await loadServers()
+    }
   }
 }
 
@@ -2530,6 +2584,33 @@ const closeDbModal = () => {
   }
 }
 
+const handleDatabaseImported = async ({ serversImported = false, settingsImported = false } = {}) => {
+  const tasks = []
+  if (serversImported) tasks.push(loadServers())
+  if (settingsImported) tasks.push(loadSettings())
+  await Promise.all(tasks)
+}
+
+const closeTopmostAdminModal = () => {
+  if (alertMessage.value) { alertMessage.value = null; return true }
+  if (saveResult.value) { saveResult.value = null; return true }
+  if (validationError.value) { validationError.value = null; return true }
+  if (d1UsageResult.value) { d1UsageResult.value = null; return true }
+  if (showAutoUpdateWarning.value) { cancelAutoUpdateWarning(); return true }
+  if (showDbModal.value) { closeDbModal(); return true }
+  if (showAutoDiscoveryModal.value) { closeAutoDiscoveryModal(); return true }
+  if (showCopyModal.value) { closeCopyModal(); return true }
+  if (showDeleteModal.value) { closeDeleteModal(); return true }
+  if (showBatchEditModal.value) { closeBatchEditModal(); return true }
+  if (showEditModal.value) { closeEditModal(); return true }
+  return false
+}
+
+const handleAdminKeyDown = (event) => {
+  if (event.key !== 'Escape') return
+  closeTopmostAdminModal()
+}
+
 const queryD1Usage = async () => {
   if (d1UsageLoading.value) return
   d1UsageLoading.value = true
@@ -2602,6 +2683,11 @@ watch(() => route.query.apiIndex, async (value) => {
 })
 
 onMounted(() => {
+  window.addEventListener('keydown', handleAdminKeyDown)
   initAdmin()
+})
+
+onScopeDispose(() => {
+  window.removeEventListener('keydown', handleAdminKeyDown)
 })
 </script>

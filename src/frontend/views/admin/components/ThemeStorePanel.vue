@@ -5,7 +5,7 @@
 
       <div class="warning-box mb-4">
         <div class="flex-center-gap-sm">
-          <span class="warning-icon text-xl">⚠️</span>
+          <TriangleAlert :size="20" class="warning-icon" aria-hidden="true" />
           <span style="color: var(--accent-yellow); font-weight: 600;">{{ trans.themeStoreWarning }}</span>
         </div>
         <p class="text-secondary text-sm mt-2" style="line-height: 1.6;">{{ trans.themeStoreWarningDesc }}</p>
@@ -37,18 +37,18 @@
             @click="previewCustomTheme"
             class="btn"
             :disabled="!customThemeUrl || previewingThemeId === '__custom__'"
-          >👁 {{ previewingThemeId === '__custom__' ? trans.saving : trans.preview }}</button>
+          ><Eye :size="14" aria-hidden="true" /> {{ previewingThemeId === '__custom__' ? trans.saving : trans.preview }}</button>
           <button
             @click="applyCustomTheme"
             class="btn btn-primary"
             :disabled="!customThemeUrl || applyingThemeId === '__custom__'"
-          >⇄ {{ applyingThemeId === '__custom__' ? trans.saving : trans.applyCustomTheme }}</button>
+          ><ArrowLeftRight :size="14" aria-hidden="true" /> {{ applyingThemeId === '__custom__' ? trans.saving : trans.applyCustomTheme }}</button>
           <button
             v-if="currentThemeUrl"
             @click="clearTheme"
             class="btn"
             :disabled="applyingThemeId === '__builtin__'"
-          >↩ {{ trans.useBuiltinTheme }}</button>
+          ><RotateCcw :size="14" aria-hidden="true" /> {{ trans.useBuiltinTheme }}</button>
         </div>
       </div>
 
@@ -59,16 +59,16 @@
 
       <div v-else-if="error" class="danger-box mb-4">
         <div class="flex-center-gap-sm">
-          <span class="danger-icon text-xl">❌</span>
+          <XCircle :size="20" class="danger-icon" aria-hidden="true" />
           <span class="danger-label">{{ error }}</span>
         </div>
-        <button @click="loadThemes" class="btn btn-lg mt-2">↻ {{ trans.refresh }}</button>
+        <button @click="loadThemes" class="btn btn-lg mt-2"><RefreshCw :size="15" aria-hidden="true" /> {{ trans.refresh }}</button>
       </div>
 
       <div class="theme-grid">
         <div class="theme-card" :class="{ active: isMikusThemeActive }">
           <div class="theme-cover-wrap theme-cover-wrap-mikus">
-            <img src="/mikus/loli.gif" alt="Mikus" class="theme-cover theme-cover-mikus" />
+            <img :src="getPublicAssetUrl('mikus/loli.gif')" alt="Mikus" class="theme-cover theme-cover-mikus" />
           </div>
           <div class="theme-info">
             <div class="theme-header">
@@ -86,14 +86,14 @@
                 class="btn btn-sm"
                 :class="{ 'btn-primary': applyingThemeId !== '__mikus_enable__' && !isMikusThemeActive }"
                 :disabled="applyingThemeId === '__mikus_enable__' || isMikusThemeActive"
-              >✓ {{ applyingThemeId === '__mikus_enable__' ? trans.saving : trans.enable }}</button>
+              ><Check :size="13" aria-hidden="true" /> {{ applyingThemeId === '__mikus_enable__' ? trans.saving : trans.enable }}</button>
               <button
                 @click="disableMikusTheme"
                 class="btn btn-sm"
                 :class="{ 'btn-primary': applyingThemeId !== '__mikus_disable__' && isMikusThemeActive }"
                 :disabled="applyingThemeId === '__mikus_disable__' || !isMikusThemeActive"
-              >✕ {{ applyingThemeId === '__mikus_disable__' ? trans.saving : trans.close }}</button>
-              <a href="https://github.com/mikus-loli/komari-mikus" target="_blank" rel="noopener noreferrer" class="btn btn-sm">↗ {{ trans.view }}</a>
+              ><X :size="13" aria-hidden="true" /> {{ applyingThemeId === '__mikus_disable__' ? trans.saving : trans.close }}</button>
+              <a href="https://github.com/mikus-loli/komari-mikus" target="_blank" rel="noopener noreferrer" class="btn btn-sm"><ExternalLink :size="13" aria-hidden="true" /> {{ trans.view }}</a>
             </div>
           </div>
         </div>
@@ -137,7 +137,8 @@
             <!-- 当前选中版本信息 -->
             <div v-if="getSelectedVersion(theme)" class="theme-version-info">
               <div v-if="getSelectedVersion(theme).releaseDate" class="version-date">
-                📅 {{ getSelectedVersion(theme).releaseDate }}
+                <Calendar :size="12" aria-hidden="true" />
+                <span>{{ getSelectedVersion(theme).releaseDate }}</span>
               </div>
               <div v-if="getSelectedVersion(theme).changelog" class="version-changelog">
                 <div class="changelog-label">{{ trans.changelog }}</div>
@@ -150,13 +151,13 @@
                 @click="previewTheme(theme)"
                 class="btn btn-sm"
                 :disabled="!getSelectedThemeUrl(theme) || previewingThemeId === theme.id"
-              >👁 {{ previewingThemeId === theme.id ? trans.saving : trans.preview }}</button>
+              ><Eye :size="13" aria-hidden="true" /> {{ previewingThemeId === theme.id ? trans.saving : trans.preview }}</button>
               <button
                 @click="applyTheme(theme)"
                 class="btn btn-sm btn-primary"
                 :disabled="!getSelectedThemeUrl(theme) || applyingThemeId === theme.id"
-              >⇄ {{ applyingThemeId === theme.id ? trans.saving : trans.switchTheme }}</button>
-              <a v-if="getSafeExternalUrl(theme.url)" :href="getSafeExternalUrl(theme.url)" target="_blank" rel="noopener noreferrer" class="btn btn-sm">↗ {{ trans.view }}</a>
+              ><ArrowLeftRight :size="13" aria-hidden="true" /> {{ applyingThemeId === theme.id ? trans.saving : trans.switchTheme }}</button>
+              <a v-if="getSafeExternalUrl(theme.url)" :href="getSafeExternalUrl(theme.url)" target="_blank" rel="noopener noreferrer" class="btn btn-sm"><ExternalLink :size="13" aria-hidden="true" /> {{ trans.view }}</a>
             </div>
           </div>
         </div>
@@ -164,7 +165,7 @@
         <div class="theme-card theme-card-new">
           <div class="theme-cover-wrap theme-cover-wrap-new">
             <div class="theme-new-cover">
-              <div class="theme-new-plus">+</div>
+              <div class="theme-new-plus"><Plus :size="18" aria-hidden="true" /></div>
               <pre class="theme-new-tree">my-theme/
 ├── index.html
 └── assets/</pre>
@@ -177,9 +178,9 @@
             <p class="theme-desc">{{ trans.themeStoreCreateDesc }}</p>
             <div class="theme-space"></div>
             <div class="theme-actions">
-              <a :href="THEME_DEV_DOC_URL" target="_blank" rel="noopener noreferrer" class="btn btn-sm">↗ {{ trans.themeStoreDevDoc }}</a>
-              <a :href="THEME_AI_PROMPT_URL" target="_blank" rel="noopener noreferrer" class="btn btn-sm">↗ {{ trans.themeStoreAiPrompt }}</a>
-              <a :href="THEME_SUBMIT_URL" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary">↗ {{ trans.themeStoreSubmit }}</a>
+              <a :href="THEME_DEV_DOC_URL" target="_blank" rel="noopener noreferrer" class="btn btn-sm"><ExternalLink :size="13" aria-hidden="true" /> {{ trans.themeStoreDevDoc }}</a>
+              <a :href="THEME_AI_PROMPT_URL" target="_blank" rel="noopener noreferrer" class="btn btn-sm"><ExternalLink :size="13" aria-hidden="true" /> {{ trans.themeStoreAiPrompt }}</a>
+              <a :href="THEME_SUBMIT_URL" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary"><ExternalLink :size="13" aria-hidden="true" /> {{ trans.themeStoreSubmit }}</a>
             </div>
           </div>
         </div>
@@ -190,10 +191,12 @@
 
 <script setup>
 import { computed, ref, watch, reactive } from 'vue'
+import { ArrowLeftRight, Calendar, Check, ExternalLink, Eye, Plus, RefreshCw, RotateCcw, TriangleAlert, X, XCircle } from 'lucide-vue-next'
 import http from '../../../utils/http'
 import { currentLang } from '../../../utils/i18n'
 import { adminApi } from '../../../utils/api'
 import { normalizeDisplayMode } from '../../../utils/displayMode'
+import { getPublicAssetUrl } from '../../../utils/config'
 import { isMikusThemeEnabled } from '../../../utils/themeOptions'
 import { APPEARANCE_FIELDS } from '../../../../utils/settings'
 
@@ -316,7 +319,7 @@ const fetchThemeStoreFromRaw = async () => {
 }
 
 const fetchThemeStore = async () => {
-  const result = await http.get('/theme')
+  const result = await http.getByIndex('/theme', props.selectedApiIndex)
   if (!result.error) return normalizeThemeStore(result.data)
 
   return fetchThemeStoreFromRaw()
@@ -589,6 +592,13 @@ const previewThemeUrl = async (themeUrl, previewingId) => {
 
   if (previewingThemeId.value) return
   previewingThemeId.value = previewingId
+  const popup = typeof window !== 'undefined' ? window.open('about:blank', '_blank') : null
+  if (popup) {
+    try {
+      popup.opener = null
+    } catch (_) {}
+  }
+
   try {
     const result = await adminApi({
       action: 'start_theme_preview',
@@ -596,18 +606,30 @@ const previewThemeUrl = async (themeUrl, previewingId) => {
     }, props.selectedApiIndex)
 
     if (result.error) {
+      popup?.close()
       showThemeMessage(props.trans[result.error] || result.error || props.trans.themeApplyFailed)
       return
     }
 
     const previewUrl = result.data?.preview_url
     if (!previewUrl) {
+      popup?.close()
       showThemeMessage(props.trans.themeApplyFailed)
       return
     }
 
-    window.open(previewUrl, '_blank', 'noopener,noreferrer')
+    if (popup && !popup.closed) {
+      popup.location.href = previewUrl
+    } else {
+      const fallbackPopup = typeof window !== 'undefined'
+        ? window.open(previewUrl, '_blank', 'noopener,noreferrer')
+        : null
+      if (!fallbackPopup) {
+        showThemeMessage(`${props.trans.preview || 'Preview'}: ${previewUrl}`)
+      }
+    }
   } catch (e) {
+    popup?.close()
     showThemeMessage(e.message || props.trans.themeApplyFailed)
   } finally {
     previewingThemeId.value = ''
@@ -765,6 +787,16 @@ const getSafeExternalUrl = (value) => {
 const handleCoverError = (e) => {
   e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225"><rect fill="%231a1a2e" width="400" height="225"/><text fill="%23666" font-family="monospace" font-size="16" x="200" y="112" text-anchor="middle">No Preview</text></svg>'
 }
+
+watch(
+  () => props.selectedApiIndex,
+  () => {
+    loaded.value = false
+    if (props.activeTab === 'themeStore') {
+      loadThemes()
+    }
+  }
+)
 
 watch(
   () => props.activeTab,
@@ -1037,6 +1069,9 @@ watch(
 }
 
 .version-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-size: 11px;
   color: var(--text-secondary);
   margin-bottom: 4px;
@@ -1065,6 +1100,7 @@ watch(
 
 .theme-actions .btn {
   flex: 1 1 90px;
+  justify-content: center;
   text-align: center;
   text-decoration: none;
   font-size: 12px;

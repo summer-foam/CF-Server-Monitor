@@ -53,10 +53,10 @@
                   type="button"
                   class="input-clear-btn"
                   @click="settings.custom_bg = ''"
-                >×</button>
+                ><X :size="14" aria-hidden="true" /></button>
               </div>
               <div class="upload-btn-wrapper">
-                <button class="btn btn-margin-0">📁 {{ trans.upload }}</button>
+                <button class="btn btn-margin-0"><Upload :size="14" aria-hidden="true" /> {{ trans.upload }}</button>
                 <input type="file" accept="image/*" @change="$emit('upload-bg', $event)">
               </div>
             </div>
@@ -76,10 +76,10 @@
                   type="button"
                   class="input-clear-btn"
                   @click="settings.custom_bg_mobile = ''"
-                >×</button>
+                ><X :size="14" aria-hidden="true" /></button>
               </div>
               <div class="upload-btn-wrapper">
-                <button class="btn btn-margin-0">📁 {{ trans.upload }}</button>
+                <button class="btn btn-margin-0"><Upload :size="14" aria-hidden="true" /> {{ trans.upload }}</button>
                 <input type="file" accept="image/*" @change="$emit('upload-bg-mobile', $event)">
               </div>
             </div>
@@ -99,10 +99,10 @@
                   type="button"
                   class="input-clear-btn"
                   @click="settings.favicon = ''"
-                >×</button>
+                ><X :size="14" aria-hidden="true" /></button>
               </div>
               <div class="upload-btn-wrapper">
-                <button class="btn btn-margin-0">📁 {{ trans.upload }}</button>
+                <button class="btn btn-margin-0"><Upload :size="14" aria-hidden="true" /> {{ trans.upload }}</button>
                 <input type="file" accept="image/*,.ico" @change="$emit('upload-favicon', $event)">
               </div>
             </div>
@@ -307,8 +307,9 @@
             <label class="form-label">{{ trans.telegramToken }}</label>
             <div class="password-input-wrapper">
               <input type="text" name="tg_bot_token" autocomplete="off" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" v-model="settings.tg_bot_token" :class="['form-input', { 'secret-input-masked': !passwordVisible.tgBotToken }]" placeholder="Bot Token or Webhook URL">
-              <button type="button" class="password-toggle" @click="$emit('toggle-password', 'tgBotToken')">
-                {{ passwordVisible.tgBotToken ? '🙈' : '👁️' }}
+                <button type="button" class="password-toggle" @click="$emit('toggle-password', 'tgBotToken')">
+                <EyeOff v-if="passwordVisible.tgBotToken" :size="16" aria-hidden="true" />
+                <Eye v-else :size="16" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -318,7 +319,8 @@
             <div class="password-input-wrapper">
               <input type="text" name="tg_chat_id" autocomplete="off" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" v-model="settings.tg_chat_id" :class="['form-input', { 'secret-input-masked': !passwordVisible.tgChatId }]" placeholder="Optional Chat ID">
               <button type="button" class="password-toggle" @click="$emit('toggle-password', 'tgChatId')">
-                {{ passwordVisible.tgChatId ? '🙈' : '👁️' }}
+                <EyeOff v-if="passwordVisible.tgChatId" :size="16" aria-hidden="true" />
+                <Eye v-else :size="16" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -371,7 +373,8 @@
               <div class="password-input-wrapper">
                 <input type="text" name="smtp_password" autocomplete="new-password" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" v-model="smtpConfig.password" @blur="validateSmtpField('password')" :class="['form-input', { 'secret-input-masked': !passwordVisible.smtpPassword }]" placeholder="SMTP password / app password">
                 <button type="button" class="password-toggle" @click="$emit('toggle-password', 'smtpPassword')">
-                  {{ passwordVisible.smtpPassword ? '🙈' : '👁️' }}
+                  <EyeOff v-if="passwordVisible.smtpPassword" :size="16" aria-hidden="true" />
+                  <Eye v-else :size="16" aria-hidden="true" />
                 </button>
               </div>
               <p v-if="smtpErrors.password" class="text-danger text-sm">{{ smtpErrors.password }}</p>
@@ -415,7 +418,8 @@
                   placeholder="https://example.com/webhook"
                 >
                 <button type="button" class="password-toggle" @click="$emit('toggle-password', 'notificationWebhookUrl')">
-                  {{ passwordVisible.notificationWebhookUrl ? '🙈' : '👁️' }}
+                  <EyeOff v-if="passwordVisible.notificationWebhookUrl" :size="16" aria-hidden="true" />
+                  <Eye v-else :size="16" aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -457,7 +461,7 @@
                 v-model="settings.notification_webhook_body"
                 class="form-textarea"
                 rows="6"
-                placeholder='{"title":"{{emoji}} {{event}}","content":"{{notification}}"}'
+                placeholder='{"title":"{{event}}","content":"{{notification}}"}'
               ></textarea>
             </div>
           </div>
@@ -518,14 +522,18 @@
               v-model="settings.notification_template"
               class="form-textarea"
               rows="5"
-              placeholder="{{emoji}}【CF Server Monitor】{{event}}\n\n{{message}}\n\n{{time}}"
+              placeholder="【CF Server Monitor】{{event}}\n\n{{message}}\n\n{{time}}"
             ></textarea>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group flex-1">
-            <button type="button" @click="$emit('send-test-notification')" class="btn btn-primary" :disabled="testNotificationLoading">{{ testNotificationLoading ? '⏳' : '📨' }} {{ trans.sendTestNotification }}</button>
+            <button type="button" @click="$emit('send-test-notification')" class="btn btn-primary" :disabled="testNotificationLoading">
+              <Loader2 v-if="testNotificationLoading" :size="14" class="lucide-spin" aria-hidden="true" />
+              <Send v-else :size="14" aria-hidden="true" />
+              {{ trans.sendTestNotification }}
+            </button>
           </div>
         </div>
 
@@ -654,7 +662,8 @@
             <div class="password-input-wrapper">
               <input type="text" name="turnstile_secret_key" autocomplete="off" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" v-model="settings.turnstile_secret_key" :class="['form-input', { 'secret-input-masked': !passwordVisible.turnstileSecret }]" :placeholder="trans.turnstileSecretKeyPlaceholder">
               <button type="button" class="password-toggle" @click="$emit('toggle-password', 'turnstileSecret')">
-                {{ passwordVisible.turnstileSecret ? '🙈' : '👁️' }}
+                <EyeOff v-if="passwordVisible.turnstileSecret" :size="16" aria-hidden="true" />
+                <Eye v-else :size="16" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -669,7 +678,8 @@
             <div class="password-input-wrapper">
               <input type="text" name="jwt_secret" autocomplete="off" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" v-model="settings.jwt_secret" :class="['form-input', { 'secret-input-masked': !passwordVisible.jwtSecret }]" placeholder="••••••••••••••••••••••••••••••••">
               <button type="button" class="password-toggle" @click="$emit('toggle-password', 'jwtSecret')">
-                {{ passwordVisible.jwtSecret ? '🙈' : '👁️' }}
+                <EyeOff v-if="passwordVisible.jwtSecret" :size="16" aria-hidden="true" />
+                <Eye v-else :size="16" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -697,7 +707,8 @@
                 placeholder="cfsm"
               >
               <button type="button" class="password-toggle" @click="$emit('toggle-password', 'ua')">
-                {{ passwordVisible.ua ? '🙈' : '👁️' }}
+                <EyeOff v-if="passwordVisible.ua" :size="16" aria-hidden="true" />
+                <Eye v-else :size="16" aria-hidden="true" />
               </button>
             </div>
             <p v-if="userAgentInvalid" class="text-red text-sm mt-1">{{ trans.customUserAgentInvalid }}</p>
@@ -724,7 +735,8 @@
                 :placeholder="trans.appPasswordPlaceholder"
               >
               <button type="button" class="password-toggle" @click="$emit('toggle-password', 'appPassword')">
-                {{ passwordVisible.appPassword ? '🙈' : '👁️' }}
+                <EyeOff v-if="passwordVisible.appPassword" :size="16" aria-hidden="true" />
+                <Eye v-else :size="16" aria-hidden="true" />
               </button>
             </div>
             <p v-if="appPasswordInvalid" class="text-red text-sm mt-1">{{ trans.appPasswordInvalid }}</p>
@@ -750,7 +762,8 @@
             <div class="password-input-wrapper">
               <input type="text" name="cloudflare_token" autocomplete="off" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" v-model="settings.cloudflare_token" :class="['form-input', { 'secret-input-masked': !passwordVisible.cloudflareToken }]" :placeholder="trans.cloudflareTokenPlaceholder">
               <button type="button" class="password-toggle" @click="$emit('toggle-password', 'cloudflareToken')">
-                {{ passwordVisible.cloudflareToken ? '🙈' : '👁️' }}
+                <EyeOff v-if="passwordVisible.cloudflareToken" :size="16" aria-hidden="true" />
+                <Eye v-else :size="16" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -758,7 +771,11 @@
 
         <div class="form-row">
           <div class="form-group  flex-1">
-            <button type="button" @click="$emit('query-d1-usage')" class="btn btn-primary btn-lg" :disabled="d1UsageLoading">{{ d1UsageLoading ? '⏳' : '🔍' }} {{ trans.queryD1Quota }}</button>
+            <button type="button" @click="$emit('query-d1-usage')" class="btn btn-primary btn-lg" :disabled="d1UsageLoading">
+              <Loader2 v-if="d1UsageLoading" :size="15" class="lucide-spin" aria-hidden="true" />
+              <Search v-else :size="15" aria-hidden="true" />
+              {{ trans.queryD1Quota }}
+            </button>
           </div>
         </div>
 
@@ -807,7 +824,8 @@
                 :placeholder="settings.password_configured ? '••••••••' : ''"
               >
               <button type="button" class="password-toggle" @click="$emit('toggle-password', 'password')">
-                {{ passwordVisible.password ? '🙈' : '👁️' }}
+                <EyeOff v-if="passwordVisible.password" :size="16" aria-hidden="true" />
+                <Eye v-else :size="16" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -828,7 +846,8 @@
                 :placeholder="settings.password_configured ? '••••••••' : ''"
               >
               <button type="button" class="password-toggle" @click="$emit('toggle-password', 'confirmPassword')">
-                {{ passwordVisible.confirmPassword ? '🙈' : '👁️' }}
+                <EyeOff v-if="passwordVisible.confirmPassword" :size="16" aria-hidden="true" />
+                <Eye v-else :size="16" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -884,13 +903,18 @@
 
     <div class="settings-save-bar">
       <span class="settings-save-hint">{{ trans.saveHint }}</span>
-      <button @click="$emit('save-settings')" class="btn btn-primary btn-lg" :disabled="saving || hasPingNodeErrors || userAgentInvalid || appPasswordInvalid">{{ saving ? '⏳' : '💾' }} {{ saving ? trans.saving : trans.saveConfig }}</button>
+      <button @click="$emit('save-settings')" class="btn btn-primary btn-lg" :disabled="saving || hasPingNodeErrors || userAgentInvalid || appPasswordInvalid">
+        <Loader2 v-if="saving" :size="15" class="lucide-spin" aria-hidden="true" />
+        <Save v-else :size="15" aria-hidden="true" />
+        {{ saving ? trans.saving : trans.saveConfig }}
+      </button>
     </div>
   </div>
 </template>
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { Eye, EyeOff, Loader2, Save, Search, Send, Upload, X } from 'lucide-vue-next'
 import HelpTooltip from '../../../components/HelpTooltip.vue'
 import PasskeyManager from './PasskeyManager.vue'
 import { FRONTEND_WS_TIMEOUT_MINUTES_MAX, HISTORY } from '../../../utils/constants.js'
@@ -1036,11 +1060,9 @@ const selectedNotificationTimezone = computed({
 const showCustomNotificationTimezone = computed(() => selectedNotificationTimezone.value === CUSTOM_NOTIFICATION_TIMEZONE_VALUE)
 
 watch(
-  () => props.settings.notification_timezone,
-  (value) => {
-    if (!String(value || '').trim() || isCommonNotificationTimezone(value)) {
-      manualCustomNotificationTimezone.value = false
-    }
+  () => props.settings,
+  () => {
+    manualCustomNotificationTimezone.value = false
   }
 )
 
@@ -1100,7 +1122,10 @@ const wssReportHours = computed(() => {
     .sort((a, b) => a - b)
 })
 
-const localHourToUtcHour = hour => new Date(2000, 0, 1, hour, 0, 0, 0).getUTCHours()
+const localHourToUtcHour = (hour) => {
+  const now = new Date()
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, 0, 0, 0).getUTCHours()
+}
 
 const localTimezoneLabel = computed(() => {
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -1327,22 +1352,11 @@ watch(() => props.settings.tg_bot_token, (token) => {
   }
 }, { immediate: true })
 
-const ensureResourceAlertRules = () => {
-  if (!Array.isArray(props.settings.resource_alert_rules)) {
-    props.settings.resource_alert_rules = []
-  }
-  const serverIds = props.servers.map(server => String(server.id || '').trim()).filter(Boolean)
-  if (serverIds.length > 0) {
-    for (const rule of props.settings.resource_alert_rules) {
-      if (!Array.isArray(rule.servers) || rule.servers.length === 0) {
-        rule.servers = [...serverIds]
-      }
-    }
-  }
-  return props.settings.resource_alert_rules
-}
-
-const resourceAlertRules = computed(() => ensureResourceAlertRules())
+const resourceAlertRules = computed(() => (
+  Array.isArray(props.settings.resource_alert_rules)
+    ? props.settings.resource_alert_rules
+    : []
+))
 const resourceAlertExpanded = ref(false)
 const resourceAlertRuleNameInputs = new Map()
 const resourceAlertToggleText = computed(() => resourceAlertExpanded.value ? props.trans.collapse : props.trans.expand)
@@ -1399,12 +1413,58 @@ const getResourceAlertRuleServerIds = (rule) => (
     : []
 )
 
+const getValidResourceAlertRuleServerIds = (rule) => {
+  const validSet = new Set(resourceAlertServerOptions.value.map(server => server.id))
+  return getResourceAlertRuleServerIds(rule).filter(id => validSet.has(id))
+}
+
+const normalizeResourceAlertRules = () => {
+  if (!Array.isArray(props.settings.resource_alert_rules)) {
+    props.settings.resource_alert_rules = []
+  }
+  const serverIds = resourceAlertServerOptions.value.map(server => server.id)
+  if (serverIds.length === 0) return props.settings.resource_alert_rules
+
+  const validSet = new Set(serverIds)
+  for (const rule of props.settings.resource_alert_rules) {
+    if (!rule || typeof rule !== 'object') continue
+    const existing = Array.isArray(rule.servers)
+      ? rule.servers.map(item => String(item || '').trim()).filter(id => validSet.has(id))
+      : []
+    const deduped = Array.from(new Set(existing))
+    const nextServers = deduped.length > 0 ? deduped : [...serverIds]
+    const currentServers = Array.isArray(rule.servers)
+      ? rule.servers.map(item => String(item || '').trim())
+      : []
+    if (
+      !Array.isArray(rule.servers) ||
+      currentServers.length !== nextServers.length ||
+      currentServers.some((id, index) => id !== nextServers[index])
+    ) {
+      rule.servers = nextServers
+    }
+  }
+  return props.settings.resource_alert_rules
+}
+
+watch(
+  () => [
+    props.settings,
+    props.settings.resource_alert_rules,
+    resourceAlertServerOptions.value.map(server => server.id).join('\0')
+  ],
+  () => {
+    normalizeResourceAlertRules()
+  },
+  { immediate: true }
+)
+
 const resourceAlertRuleHasServer = (rule, serverId) => (
   getResourceAlertRuleServerIds(rule).includes(String(serverId))
 )
 
 const isLastResourceAlertRuleServer = (rule, serverId) => {
-  const selected = getResourceAlertRuleServerIds(rule)
+  const selected = getValidResourceAlertRuleServerIds(rule)
   return selected.length === 1 && selected[0] === String(serverId)
 }
 
@@ -1412,7 +1472,7 @@ const toggleResourceAlertRuleServer = (rule, serverId, checked) => {
   const id = String(serverId || '').trim()
   if (!id) return
 
-  const selected = getResourceAlertRuleServerIds(rule)
+  const selected = getValidResourceAlertRuleServerIds(rule)
   const selectedSet = new Set(selected)
   if (checked) {
     selectedSet.add(id)
@@ -1483,7 +1543,7 @@ const onResourceAlertMetricChange = (rule, event) => {
 
 const addResourceAlertRule = () => {
   resourceAlertExpanded.value = true
-  const rules = ensureResourceAlertRules()
+  const rules = normalizeResourceAlertRules()
   const metric = 'cpu'
   const rule = {
     id: createRuleId(),
@@ -1503,7 +1563,7 @@ const addResourceAlertRule = () => {
 }
 
 const removeResourceAlertRule = (index) => {
-  ensureResourceAlertRules().splice(index, 1)
+  normalizeResourceAlertRules().splice(index, 1)
 }
 
 const pingNodeErrorMessage = computed(() => (

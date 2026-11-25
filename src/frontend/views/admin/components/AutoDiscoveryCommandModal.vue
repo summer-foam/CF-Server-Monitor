@@ -1,9 +1,16 @@
 <template>
-  <div id="autoDiscoveryModal" class="modal-overlay" :class="{ active: show }">
+  <div
+    v-if="show"
+    id="autoDiscoveryModal"
+    class="modal-overlay active"
+    role="dialog"
+    aria-modal="true"
+    @click.self="$emit('close')"
+  >
     <div class="modal-dialog">
       <div class="modal-header">
         <div class="modal-title">{{ trans.autoAdd }}</div>
-        <button class="modal-close" @click="$emit('close')">✕</button>
+        <button type="button" class="modal-close" :aria-label="trans.close" @click="$emit('close')"><X :size="18" aria-hidden="true" /></button>
       </div>
 
       <div class="form-row">
@@ -116,7 +123,11 @@
       </div>
 
       <div class="modal-footer flex-justify-between">
-        <button @click="$emit('copy-cmd')" class="btn btn-primary">{{ copied ? '✅ ' + trans.copied : '📋 ' + trans.copy }}</button>
+        <button @click="$emit('copy-cmd')" class="btn btn-primary">
+          <Check v-if="copied" :size="14" aria-hidden="true" />
+          <Copy v-else :size="14" aria-hidden="true" />
+          {{ copied ? trans.copied : trans.copy }}
+        </button>
         <button @click="$emit('close')" class="btn">{{ trans.cancel }}</button>
       </div>
     </div>
@@ -125,6 +136,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { Check, Copy, X } from 'lucide-vue-next'
 import HelpTooltip from '../../../components/HelpTooltip.vue'
 import { hasInvalidInstanceChars } from '../../../utils/instance-command.js'
 
@@ -155,16 +167,16 @@ const emit = defineEmits([
 ])
 
 const CUSTOM_GH_PROXY_VALUE = '__custom__'
-const ghProxyOptions = [
+const ghProxyOptions = computed(() => [
   { value: '', label: props.trans.ghProxyPlaceholder || 'Direct' },
   { value: 'https://ghfast.top/', label: 'https://ghfast.top/' },
   { value: 'https://ghproxy.net/', label: 'https://ghproxy.net/' },
   { value: 'https://gh.llkk.cc/', label: 'https://gh.llkk.cc/' },
   { value: 'https://gh-proxy.com/', label: 'https://gh-proxy.com/' }
-]
+])
 
 const manualCustomGhProxy = ref(false)
-const isKnownGhProxy = (value) => ghProxyOptions.some(option => option.value === String(value || '').trim())
+const isKnownGhProxy = (value) => ghProxyOptions.value.some(option => option.value === String(value || '').trim())
 
 const selectedGhProxy = computed({
   get: () => {

@@ -1,9 +1,16 @@
 <template>
-  <div id="editModal" class="modal-overlay" :class="{ active: show }">
+  <div
+    v-if="show"
+    id="editModal"
+    class="modal-overlay active"
+    role="dialog"
+    aria-modal="true"
+    @click.self="!saving && $emit('close')"
+  >
     <div class="modal-dialog edit-server-modal">
       <div class="modal-header">
         <div class="modal-title">{{ currentServerName }}</div>
-        <button class="modal-close" @click="$emit('close')">✕</button>
+        <button type="button" class="modal-close" :aria-label="trans.close" :disabled="saving" @click="$emit('close')"><X :size="18" aria-hidden="true" /></button>
       </div>
       <input type="hidden" v-model="editForm.id">
 
@@ -263,8 +270,8 @@
         </div>
       </div>
       <div class="modal-footer flex-justify-between">
-        <button @click="$emit('save')" class="btn btn-primary" :disabled="hasPingNodeErrors">{{ trans.save }}</button>
-        <button @click="$emit('close')" class="btn">{{ trans.cancel }}</button>
+        <button @click="$emit('save')" class="btn btn-primary" :disabled="hasPingNodeErrors || saving">{{ saving ? trans.saving : trans.save }}</button>
+        <button @click="$emit('close')" class="btn" :disabled="saving">{{ trans.cancel }}</button>
       </div>
     </div>
   </div>
@@ -272,6 +279,7 @@
 
 <script setup>
 import { computed, watch } from 'vue'
+import { X } from 'lucide-vue-next'
 import HelpTooltip from '../../../components/HelpTooltip.vue'
 import { PING_NODE_FIELDS, validatePingNode } from '../../../utils/pingNode.js'
 import { currentLang } from '../../../utils/i18n.js'
@@ -283,7 +291,8 @@ const props = defineProps({
   trans: { type: Object, required: true },
   show: { type: Boolean, default: false },
   currentServerName: { type: String, default: '' },
-  settings: { type: Object, required: true }
+  settings: { type: Object, required: true },
+  saving: { type: Boolean, default: false }
 })
 
 const pingNodeErrorMessage = computed(() => (
@@ -329,7 +338,7 @@ const normalizeTgNotifySetting = (value) => {
 
 const isOfflineNotifyEnabled = computed(() => normalizeTgNotifySetting(props.settings.tg_notify) !== '0')
 const hasNodeNotificationOptions = computed(() => (
-  !!props.settings.tg_bot_token &&
+  (!!props.settings.tg_bot_token || !!props.settings.notification_webhook_enabled) &&
   isOfflineNotifyEnabled.value
 ))
 const isWssReportEnabled = computed(() => props.settings.wss_report_enabled === true)
